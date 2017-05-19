@@ -430,10 +430,11 @@ namespace mi4
         class VolumeData
         {
         public:
-                explicit VolumeData ( void ) {
-			this->init(VolumeInfo(Point3i(0,0,0)), false);
-			return;
-		}
+                explicit VolumeData ( void )
+                {
+                        this->init ( VolumeInfo ( Point3i ( 0, 0, 0 ) ), false );
+                        return;
+                }
                 explicit VolumeData ( const Point3i& size, const bool allocateMemory = true )
                 {
                         this->init ( VolumeInfo ( size ), allocateMemory );
@@ -557,7 +558,7 @@ namespace mi4
                                 this->_data.assign ( size.z(), std::vector<std::vector<T> > ( size.y(), std::vector<T> ( size.x(), T() ) ) );
 
                                 if ( this->_data.size() != static_cast<size_t> ( size.z() ) ) {
-                                        std::cerr<<" volume data allocation failed"<<std::endl;
+                                        std::cerr << " volume data allocation failed" << std::endl;
                                         return false;        // when allocation is failed.
                                 }
 
@@ -670,10 +671,15 @@ namespace mi4
                 VolumeData<T> clip ( const Point3i& bmin, const Point3i& bmax ) const
                 {
                         VolumeData<T> result ( VolumeInfo ( bmax - bmin + Point3i ( 1, 1, 1 ) ) );
+
                         for ( const auto& p : Range ( result.getInfo() ) ) {
-                                if ( !this->getInfo().isValid(bmin+p) ) continue;
+                                if ( !this->getInfo().isValid ( bmin + p ) ) {
+                                        continue;
+                                }
+
                                 result.set ( p, this->get ( bmin + p ) );
                         }
+
                         return std::move ( result );
                 }
         private:

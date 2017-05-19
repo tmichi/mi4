@@ -17,26 +17,46 @@ namespace mi4
                 static VolumeData<T> binarize ( const VolumeData<T>& data, const T threshold )
                 {
                         VolumeData<T> result ( data.getInfo() );
+
                         for ( const auto& p : Range ( data.getInfo() ) ) {
-                                const T value = ( data.get(p) <  threshold ) ? 0 : 1;
+                                const T value = ( data.get ( p ) <  threshold ) ? 0 : 1;
                                 result.set ( p, value );
                         }
+
                         return std::move ( result );
                 }
 
-                static VolumeData<char> extractBoundaryVoxels ( const VolumeData<char>& data) {
-                        VolumeData <char> result(data.getInfo());
-                        Range nbr ( mi4::Point3i(-1, -1, -1), mi4::Point3i(1, 1, 1) );
+                static VolumeData<char> extractBoundaryVoxels ( const VolumeData<char>& data )
+                {
+                        VolumeData <char> result ( data.getInfo() );
+                        Range nbr ( mi4::Point3i ( -1, -1, -1 ), mi4::Point3i ( 1, 1, 1 ) );
+
                         for ( const auto p : Range ( data.getInfo() ) ) {
-                                if ( data.get(p) == 0 ) continue;
-                                for ( const auto& d : nbr ){
-                                        if ( result.get(p) != 0 ) break;
-                                        if ( d == mi4::Point3i(0, 0, 0) ) continue;
+                                if ( data.get ( p ) == 0 ) {
+                                        continue;
+                                }
+
+                                for ( const auto& d : nbr ) {
+                                        if ( result.get ( p ) != 0 ) {
+                                                break;
+                                        }
+
+                                        if ( d == mi4::Point3i ( 0, 0, 0 ) ) {
+                                                continue;
+                                        }
+
                                         const auto np = p + d;
-                                        if ( !data.getInfo().isValid(np) ) continue;
-                                        if ( data.get(np) == 0 ) result.set(p, 1);
+
+                                        if ( !data.getInfo().isValid ( np ) ) {
+                                                continue;
+                                        }
+
+                                        if ( data.get ( np ) == 0 ) {
+                                                result.set ( p, 1 );
+                                        }
                                 }
                         }
+
                         //return std::move (result);
                         return result;
                 }
@@ -75,12 +95,13 @@ namespace mi4
                         char _fg;
 
                 public:
-                        morphology ( const VolumeData<char>& inData, VolumeData<char>& outData, const double r, const bool isDilate = true) : _inData ( inData ), _outData ( outData ), _radius ( r ), _bg (0), _fg(1)
+                        morphology ( const VolumeData<char>& inData, VolumeData<char>& outData, const double r, const bool isDilate = true ) : _inData ( inData ), _outData ( outData ), _radius ( r ), _bg ( 0 ), _fg ( 1 )
                         {
                                 if ( !isDilate ) {
                                         this->_bg = 1;
                                         this->_fg = 0;
                                 }
+
                                 return;
                         }
 
@@ -94,16 +115,31 @@ namespace mi4
                         {
                                 const auto& bg = this->_bg;
                                 const auto& fg = this->_fg;
-                                if ( this->_inData.get ( p ) == fg ) return fg;
+
+                                if ( this->_inData.get ( p ) == fg ) {
+                                        return fg;
+                                }
+
                                 const auto& info = this->_inData.getInfo();
                                 const auto& r = this->_radius;
-                                const auto rp = info.convertVectorCeil(mi4::Vector3d(r, r, r));
-                                for ( const auto& d : Range(-rp, rp) ) {
-                                        if ( r * r <  info.getLengthSquared(d) ) continue;
+                                const auto rp = info.convertVectorCeil ( mi4::Vector3d ( r, r, r ) );
+
+                                for ( const auto& d : Range ( -rp, rp ) ) {
+                                        if ( r * r <  info.getLengthSquared ( d ) ) {
+                                                continue;
+                                        }
+
                                         const auto np = p + d;
-                                        if ( !info.isValid(np)) continue;
-                                        if ( this->_inData.get(np) == fg )return fg;
+
+                                        if ( !info.isValid ( np ) ) {
+                                                continue;
+                                        }
+
+                                        if ( this->_inData.get ( np ) == fg ) {
+                                                return fg;
+                                        }
                                 }
+
                                 return bg;
                         }
                 };
@@ -115,7 +151,7 @@ namespace mi4
                         VolumeData<T> result ( info );
                         Range range ( info );
                         //mi::parallel_for_each ( range.begin(), range.end(), mi::erode ( inData, outData, r)   );
-                        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, false) );
+                        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, false ) );
                         return std::move ( result );
                 }
 
@@ -126,7 +162,7 @@ namespace mi4
                         VolumeData<T> result ( info );
                         Range range ( info );
                         //mi::parallel_for_each ( range.begin(), range.end(), mi::erode ( inData, outData, r)   );
-                        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true) );
+                        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ) );
                         return std::move ( result );
                 }
 

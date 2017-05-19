@@ -1,6 +1,5 @@
 #ifndef MI4_SYSTEM_INFO_HPP
 #define MI4_SYSTEM_INFO_HPP 1
-
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -19,10 +18,8 @@
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
 #elif defined (__CYGWIN__)
-#include <ctime>
 #include <unistd.h>
 #elif defined (__APPLE__)
-#include <ctime>
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #include <sys/resource.h>
@@ -56,7 +53,6 @@ namespace mi4
                                 __cpuid ( CPUInfo, 0x80000004 );
                                 std::memcpy ( CPUBrandString + 32, CPUInfo, sizeof ( CPUInfo ) );
                         }
-
                         return std::string ( CPUBrandString );
                 }
                 static double getMemorySize ( void )
@@ -118,7 +114,6 @@ namespace mi4
                         size_t size = 256;
                         sysctlbyname ( "machdep.cpu.brand_string", &result[0], &size, NULL, 0 );
                         return std::string ( result );
-
                 }
                 static double getMemorySize ( void )
                 {
@@ -144,32 +139,31 @@ namespace mi4
         public:
                 static std::string getCpuName ( void )
                 {
-			FILE* cmd = popen("grep 'model name' /proc/cpuinfo", "r");
-    			if (cmd == NULL) return std::string ("error");
-    			char buff[256];
-    			if (fread(buff, 1, sizeof(buff)-1, cmd) <= 0)  return std::string ("error");
-    			pclose(cmd);
-			std::string buffer(buff);
-			auto s = buffer.find_first_of(":") + 2 ;
-		
-			return buffer.substr(s, buffer.find("\n") - s );
+                        FILE* cmd = popen ( "grep 'model name' /proc/cpuinfo", "r" );
+                        if ( cmd == NULL ) return std::string ( "error" );
+                        char buf[256];
+                        if ( fread ( buf, 1, sizeof ( buf ) - 1, cmd ) <= 0 ) return std::string ( "Unknown CPU" );
+                        pclose ( cmd );
+                        std::string buffer ( buf );
+                        auto s = buffer.find_first_of ( ":" ) + 2 ;
+                        return buffer.substr ( s, buffer.find ( "\n" ) - s );
                 }
 
 
                 static double getMemorySize ( void )
                 {
-			FILE* cmd = popen("grep 'MemTotal' /proc/meminfo", "r");
-    			if (cmd == NULL) return 0; 
-    			char buff[256];
-			
-    			if (fread(buff, 1, sizeof(buff)-1, cmd) <= 0)  return 0;
-    			pclose(cmd);
-			std::string buffer(buff);
-                        return std::stod(buffer.substr(buffer.find_first_of(":")+1, buffer.find("kB")))/1024/1024;
+                        FILE* cmd = popen ( "grep 'MemTotal' /proc/meminfo", "r" );
+                        if ( cmd == NULL ) return 0;
+                        char buff[256];
+                        if ( fread ( buff, 1, sizeof ( buff ) - 1, cmd ) <= 0 ) return 0;
+                        pclose ( cmd );
+                        std::string buffer ( buff );
+			// MemTotal:        8069288 kB
+                        return std::stod ( buffer.substr ( buffer.find_first_of ( ":" ) + 1, buffer.find ( "kB" ) ) ) / 1024 / 1024;
                 }
                 static double getPeakMemorySize ( void )
                 {
-			 struct rusage rusage;
+                        struct rusage rusage;
                         getrusage ( RUSAGE_SELF, &rusage );
                         return static_cast<double> ( rusage.ru_maxrss ) * 1024L;
                 }

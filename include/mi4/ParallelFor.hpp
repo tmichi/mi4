@@ -23,19 +23,26 @@ namespace mi4
                                 std::vector<std::thread> threads;
                                 Iterator start = begin;
                                 Iterator iter  = begin;
+
                                 while ( start != end ) {
-                                        for ( int i = 0 ; ( i < grainSize && iter != end ); ++i ) ++iter;
-                                        threads.push_back ( std::thread(&parallel_for::child_thread, this, start, iter,  fn ) );
+                                        for ( int i = 0 ; ( i < grainSize && iter != end ); ++i ) {
+                                                ++iter;
+                                        }
+
+                                        threads.push_back ( std::thread ( &parallel_for::child_thread, this, start, iter,  fn ) );
                                         start = iter;
                                 }
+
                                 for ( auto& t : threads ) {
                                         t.join();
                                 }
+
                                 return;
                         }
                 private:
-                        void child_thread ( const Iterator begin, const Iterator end, Function fn) {
-				std::for_each ( begin, end, fn );
+                        void child_thread ( const Iterator begin, const Iterator end, Function fn )
+                        {
+                                std::for_each ( begin, end, fn );
                                 return;
                         }
                 };
@@ -49,11 +56,13 @@ namespace mi4
         {
                 int grainSize = 0;
                 auto iter = begin;
+
                 while ( iter != end ) {
                         ++grainSize;
                         ++iter;
                 }
-                grainSize = (grainSize - 1) / nthread + 1;
+
+                grainSize = ( grainSize - 1 ) / nthread + 1;
                 parallel_for_each_by_grain_size ( begin, end, fn, grainSize ) ;
                 return;
         }

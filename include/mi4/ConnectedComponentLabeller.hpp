@@ -186,7 +186,7 @@ namespace mi4
                         for ( size_t i = 0 ; i < codes.size() ; ++i ) {
                                 const int parent = this->get_parent ( i );
 
-                                if ( parent == static_cast<int>(i) ) {
+                                if ( parent == static_cast<int> ( i ) ) {
                                         this->_labels[i] = count;
                                         voxelCount.push_back ( codes[i].getLength() );
                                         ++count;
