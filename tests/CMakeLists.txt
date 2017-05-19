@@ -1,0 +1,4 @@
+ADD_SUBDIRECTORY(ProgramTemplateTest)
+ADD_SUBDIRECTORY(TestTest)
+ADD_SUBDIRECTORY(TokenizerTest)
+ADD_SUBDIRECTORY(VolumeDataTest)
