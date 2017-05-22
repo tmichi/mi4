@@ -32,31 +32,17 @@ namespace mi4
                         Range nbr ( mi4::Point3i ( -1, -1, -1 ), mi4::Point3i ( 1, 1, 1 ) );
 
                         for ( const auto p : Range ( data.getInfo() ) ) {
-                                if ( data.get ( p ) == 0 ) {
-                                        continue;
-                                }
-
+                                if ( data.get ( p ) == 0 ) continue;
                                 for ( const auto& d : nbr ) {
-                                        if ( result.get ( p ) != 0 ) {
-                                                break;
-                                        }
-
-                                        if ( d == mi4::Point3i ( 0, 0, 0 ) ) {
-                                                continue;
-                                        }
+                                        if ( result.get ( p ) != 0 ) break;
+                                        if ( d == mi4::Point3i ( 0, 0, 0 ) ) continue;
 
                                         const auto np = p + d;
 
-                                        if ( !data.getInfo().isValid ( np ) ) {
-                                                continue;
-                                        }
-
-                                        if ( data.get ( np ) == 0 ) {
-                                                result.set ( p, 1 );
-                                        }
+                                        if ( !data.getInfo().isValid ( np ) )  continue;
+                                        if ( data.get ( np ) == 0 ) result.set ( p, 1 );
                                 }
                         }
-
                         //return std::move (result);
                         return result;
                 }
@@ -101,7 +87,6 @@ namespace mi4
                                         this->_bg = 1;
                                         this->_fg = 0;
                                 }
-
                                 return;
                         }
 

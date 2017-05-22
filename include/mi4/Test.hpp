@@ -64,7 +64,7 @@ namespace mi4
                                         std::cerr << "*";
                                 }
                         }
-
+                        std::cerr<<std::endl;
                         this->term();
                         return;
                 }
