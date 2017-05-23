@@ -213,6 +213,16 @@ namespace mi4
                         std::cerr << "\t" << this->_key << ":\t" << this->_message << std::endl;
                         return;
                 }
+
+                virtual void print ( std::ostream& out ) {
+                        out<<"[\""<<this->get_key()<<"\"] "<<this->toString()<<std::endl;
+                        return;
+                }
+
+                virtual std::string toString ( void ) const {
+                        return std::string();
+                }
+
         protected:
                 bool is_mandatory ( void ) const
                 {
@@ -228,6 +238,7 @@ namespace mi4
                 {
                         return this->_key;
                 }
+
                 Attribute::ErrorCode get_error_code ( void ) const
                 {
                         return this->_errorCode;
@@ -381,6 +392,10 @@ namespace mi4
 
                         return true;
                 }
+        public:
+                std::string toString ( void ) const {
+                        return std::to_string(this->_value);
+                }
         };
 
         class StringAttribute : public Attribute
@@ -431,7 +446,10 @@ namespace mi4
                         Attribute::setMessage ( message ) ;
                         return *this;
                 }
-
+        public:
+                virtual std::string toString ( void ) const {
+                        return this->_value;
+                }
         private:
                 std::string& _value;
                 std::string  _defaultValue; ///< Default value.
@@ -461,6 +479,11 @@ namespace mi4
                         Attribute::setMessage ( message ) ;
                         return *this;
                 }
+        public:
+                virtual std::string toString ( void ) const {
+                        return std::to_string(static_cast<int>(this->_value));
+                }
+
         private:
                 bool& _value;
         };
@@ -520,6 +543,14 @@ namespace mi4
                 {
                         Attribute::setMessage ( message ) ;
                         return *this;
+                }
+
+                std::string toString ( void ) const {
+                        std::string str;
+                        str.append(this->_attr0->toString());
+                        str.append(" ");
+                        str.append(this->_attr1->toString());
+                        return str;
                 }
         private:
                 std::unique_ptr<NumericAttribute<T> > _attr0;
@@ -587,6 +618,15 @@ namespace mi4
                         Attribute::setMessage ( message ) ;
                         return *this;
                 }
+                std::string toString ( void ) const {
+                        std::string str;
+                        str.append(this->_attr0->toString());
+                        str.append(" ");
+                        str.append(this->_attr1.toString());
+                        str.append(" ");
+                        str.append(this->_attr2.toString());
+                        return str;
+                }
         private:
                 std::unique_ptr<NumericAttribute<T> > _attr0;
                 std::unique_ptr<NumericAttribute<T> > _attr1;
@@ -597,7 +637,7 @@ namespace mi4
         class ArrayNumericAttribute : public Attribute
         {
         public:
-                ArrayNumericAttribute ( const std::string& key,  std::vector<T>& values )
+                ArrayNumericAttribute ( const std::string& key,  std::vector<T>& values ) : Attribute(key)
                 {
                         for ( size_t i = 0 ; i < values.size() ; ++i ) {
                                 std::unique_ptr<NumericAttribute<T> > attr ( new NumericAttribute<T> ( key, values[i], i + 1 ) );
@@ -668,6 +708,14 @@ namespace mi4
                 {
                         Attribute::setMessage ( message ) ;
                         return *this;
+                }
+
+                virtual std::string toString ( void ) const {
+                        std::string str;
+                        for ( auto && attr : this->_attrs ) {
+                                str.append(attr->toString()).append(" ");
+                        }
+                        return str;
                 }
         private:
                 std::vector< std::unique_ptr<NumericAttribute<T> > > _attrs;
@@ -796,6 +844,12 @@ namespace mi4
                                 iter->print_usage();
                         }
                 }
+
+                void print (std::ostream &out ) {
+                        for ( auto && iter : this->_attr ) {
+                                iter->print(out);
+                        }
+                }
         private:
                 bool is_and ( void ) const
                 {
@@ -840,6 +894,7 @@ namespace mi4
                 {
                         this->_isDebugModeOn = true;
                 }
+
                 void usage ( void )
                 {
                         this->getAttributeSet().printUsage ( this->_cmdStr );

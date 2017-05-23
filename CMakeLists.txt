@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.9)
 SET(CMAKE_VERBOSE_MAKEFILE 1)
 PROJECT(mi4)
-#linux 
+#linux
 if (UNIX AND NOT APPLE)
 	set(CMAKE_MODULE_PATH /usr/local/lib/cmake)
 	SET (LINUX TRUE)
@@ -38,10 +38,7 @@ else () # Cygwin, Mac
 	add_definitions(-g -O3 -Wall -std=c++11 -Werror)
 	link_directories(/usr/local/lib)
 endif (WIN32)
-
-
-
-
 ADD_SUBDIRECTORY(include/mi4)
 ADD_SUBDIRECTORY(examples)
 ADD_SUBDIRECTORY(tests)
+ADD_SUBDIRECTORY(dev)

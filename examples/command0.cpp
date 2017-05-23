@@ -44,10 +44,8 @@ ExampleProgram::init ( const  mi4::Argument& arg )
                 return false;
         }
 
-        std::cerr << this->_input_file << std::endl;
-        std::cerr << this->_output_file << std::endl;
-        std::cerr << this->_a << " " << this->_b << std::endl;
-        std::cerr << this->_param0 << std::endl;
+        this->getAttributeSet().print(std::cerr);
+
         return true;
 }
 

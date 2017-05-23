@@ -150,7 +150,14 @@ namespace mi4
                         std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ) );
                         return std::move ( result );
                 }
+/*
+                static VolumeData<mi4::Vector3s> distance_field ( const VolumeData<char>& binaryData) {
+                        const auto& info = inData.getInfo();
+                        VolumeData<mi4::Vector3s> resultData (info);
 
+                        return std::move ( resultData);
+                }
+                */
         };
 }
 #endif //MI4_VOLUME_DATA_UTILITY_HPP
