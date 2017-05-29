@@ -2,8 +2,8 @@
 * @file Svg.hpp
 * @author Takashi Michikawa <michikawa@acm.org>
 */
-#ifndef MI_SVG_HPP
-#define MI_SVG_HPP 1
+#ifndef MI4_SVG_HPP
+#define MI4_SVG_HPP 1
 #include <string>
 #include <iostream>
 #include <cmath>
@@ -44,11 +44,10 @@ namespace mi4
                         this->init();
                         this->setViewBox ( 0, 0, this->_size.x, this->_size.y );
 
-                        XmlElement& root = this->getRoot();
+                        auto& root = this->getRoot();
                         root.addAttribute ( "xmlns", "http://www.w3.org/2000/svg" );
                         root.addAttribute ( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
-                        root.addAttribute ( "width",  this->_size.x );
-                        root.addAttribute ( "height", this->_size.y );
+                        root.addAttribute ( "width",  this->_size.x ).addAttribute( "height", this->_size.y );
                         return;
                 }
 
@@ -59,7 +58,6 @@ namespace mi4
                         if ( std::fabs ( mxx - mnx ) < 1.0e-10 || std::fabs ( mxy - mny ) < 1.0e-10 ) {
                                 std::cerr << "warning : invalid viewport size" << "(" << mnx << "," << mny << ")" << "-" << "(" << mxx << "," << mxy << ")" << std::endl;
                         }
-
                         this->_bmin = Svg::Vector2d ( mnx, mny );
                         this->_bmax = Svg::Vector2d ( mxx, mxy );
                         return;
@@ -68,10 +66,12 @@ namespace mi4
 
                 void init ( void )
                 {
+                        const std::string black("#000000");
+
                         this->_stroke_dashed = 0;
                         this->setStrokeWidth ( 1.0 );
-                        this->setStrokeColor ( std::string ( "#000000" ) );
-                        this->setFillColor ( std::string ( "#000000" ) );
+                        this->setStrokeColor ( black );
+                        this->setFillColor (black);
                         return;
                 }
 
@@ -99,12 +99,9 @@ namespace mi4
                 {
                         auto size = this->convertTo ( Svg::Vector2d ( x0, y0 ) );
                         auto v0   = this->convertTo ( Svg::Vector2d ( width, height ) );
-                        XmlElement& element = this->getRoot().addChildElement ( "image" );
+                        auto & element = this->getRoot().addChildElement ( "image" );
                         element.addAttribute ( "xlink:href", path ) ;
-                        element.addAttribute ( "x", v0.x ) ;
-                        element.addAttribute ( "y", v0.y ) ;
-                        element.addAttribute ( "width", size.x ) ;
-                        element.addAttribute ( "height", size.y ) ;
+                        element.addAttribute ( "x", v0.x ).addAttribute ( "y", v0.y ).addAttribute ( "width", size.x ).addAttribute ( "height", size.y ) ;
                         return;
                 }
 
@@ -112,31 +109,23 @@ namespace mi4
                 {
                         auto v0 = this->convertTo ( Svg::Vector2d ( x0, y0 ) );
                         auto v1 = this->convertTo ( Svg::Vector2d ( x1, y1 ) );
-                        XmlElement& element = this->getRoot().addChildElement ( "line" );
-                        element.addAttribute ( "x1", v0.x ) ;
-                        element.addAttribute ( "y1", v0.y ) ;
-                        element.addAttribute ( "x2", v1.x ) ;
-                        element.addAttribute ( "y2", v1.y ) ;
-
+                        auto& element = this->getRoot().addChildElement ( "line" );
+                        element.addAttribute ( "x1", v0.x ).addAttribute ( "y1", v0.y ).addAttribute ( "x2", v1.x ).addAttribute ( "y2", v1.y ) ;
                         if ( this->_stroke_dashed > 0 ) {
                                 element.addAttribute ( "stroke-dasharray", this->_stroke_dashed );
                         }
-
-                        element.addAttribute ( "stroke-width", this->_stroke_width );
-                        element.addAttribute ( "stroke", this->_stroke_color );
+                        element.addAttribute ( "stroke-width", this->_stroke_width ).addAttribute ( "stroke", this->_stroke_color );
                         return;
                 }
 
                 void drawCircle ( const double cx, const double cy, const double r )
                 {
                         auto v0 = this->convertTo ( Svg::Vector2d ( cx, cy ) );
-                        XmlElement& element = this->getRoot().addChildElement ( "circle" );
+                        auto& element = this->getRoot().addChildElement ( "circle" );
                         element.addAttribute ( "cx", v0.x ).addAttribute ( "cy", v0.y ).addAttribute ( "r", r ).addAttribute ( "fill", this->_fill_color );
-
                         if ( this->_stroke_dashed > 0 ) {
                                 element.addAttribute ( "stroke-dasharray", this->_stroke_dashed );
                         }
-
                         return;
                 }
 
@@ -152,36 +141,26 @@ namespace mi4
                         const double sizex = maxx - minx;
                         const double sizey = maxy - miny;
 
-                        XmlElement& element = this->getRoot().addChildElement ( "rect" );
-                        element.addAttribute ( "x", minx ) ;
-                        element.addAttribute ( "y", miny ) ;
-                        element.addAttribute ( "width", sizex ) ;
-                        element.addAttribute ( "height", sizey ) ;
-
+                        auto& element = this->getRoot().addChildElement ( "rect" );
+                        element.addAttribute ( "x", minx ).addAttribute ( "y", miny ).addAttribute ( "width", sizex ).addAttribute ( "height", sizey ) ;
                         if ( this->_stroke_dashed > 0 ) {
                                 element.addAttribute ( "stroke-dasharray", this->_stroke_dashed );
                         }
 
-                        element.addAttribute ( "stroke-width", std::to_string ( this->_stroke_width ) );
+                        element.addAttribute ( "stroke-width",  this->_stroke_width  );
                         element.addAttribute ( "stroke", this->_stroke_color );
                         return;
                 }
         private:
-                void convert ( Vector2d& p )
+                Svg::Vector2d convertTo ( const Vector2d& v ) const
                 {
                         /*                        const double s = ( p.x - this->_bmin.x ) / ( this->_bmax.x - this->_bmin.x ) ;
                                                 const double t = ( p.y - this->_bmin.y ) / ( this->_bmax.y - this->_bmin.y ) ;
                                                 p.x = s * this->_size.x ;
                                                 p.y = ( 1.0 - t ) * this->_size.y ;
                         */
-
-                        return;
-                }
-
-                Svg::Vector2d convertTo ( const Vector2d& v ) const
-                {
-                        return v;
+                                                return v;
                 }
         };
 }
-#endif// MI_SVG_HPP
+#endif// MI4_SVG_HPP

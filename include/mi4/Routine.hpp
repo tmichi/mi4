@@ -4,13 +4,17 @@
 #include <string>
 namespace mi4
 {
+        /**
+         *
+         *
+         */
         class Routine
         {
         private:
-                Routine ( const Routine& that );
-                void operator = ( const Routine& that );
-                Routine ( Routine&& that );
-                void operator = ( Routine&& that );
+                Routine ( const Routine& that ) = delete;
+                void operator = ( const Routine& that ) = delete;
+                Routine ( Routine&& that ) = delete;
+                void operator = ( Routine&& that ) = delete;
         private:
                 const std::string _name;
                 bool _status;
@@ -31,19 +35,10 @@ namespace mi4
                                 std::cerr << this->_name << " failed" << std::endl;
                         }
                 }
-
-                Routine* getInstance ( void )
+                bool run ( void )
                 {
-                        return this;
-                }
-
-                static bool run ( Routine* routine )
-                {
-                        if ( !routine->check() ) {
-                                return false;
-                        }
-
-                        return routine->run_main_routine();
+                        if ( !this->check() ) return false;
+                        return this->run_main_routine();
                 }
         protected:
                 virtual bool run_main_routine ( void )

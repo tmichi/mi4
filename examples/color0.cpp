@@ -12,6 +12,5 @@ int main ( int argc, char** argv )
                 mapper.convert ( t, r, g, b );
                 std::cerr << t << " :" << r << "," << g << "," << b << std::endl;
         }
-
         return 0;
 }

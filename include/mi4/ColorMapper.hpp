@@ -58,7 +58,7 @@ namespace mi4
                         };
                         const auto& values = this->_values;
                         const value_type v = std::make_tuple ( value, 0, 0, 0 );
-                        auto upper = std::upper_bound ( values.cbegin(), values.cend(), v, comp_fn );
+                        const auto upper = std::upper_bound ( values.cbegin(), values.cend(), v, comp_fn );
 
                         if ( upper == values.begin() ) {
                                 r = std::get<1> ( *upper );
@@ -66,21 +66,20 @@ namespace mi4
                                 b = std::get<3> ( *upper );
                                 return;
                         }
-
-                        if ( upper == values.end() ) {
+                        else if ( upper == values.end() ) {
                                 r = std::get<1> ( values.back() );
                                 g = std::get<2> ( values.back() );
                                 b = std::get<3> ( values.back() );
                                 return;
                         }
-
-                        auto lower = upper - 1 ;
-//                        lower--;
-                        float t = ( value - std::get<0> ( *lower ) ) / ( std::get<0> ( *upper ) - std::get<0> ( *lower ) );
-                        r = ( 1.0 - t ) * std::get<1> ( *lower ) + t * std::get<1> ( *upper );
-                        g = ( 1.0 - t ) * std::get<2> ( *lower ) + t * std::get<2> ( *upper );
-                        b = ( 1.0 - t ) * std::get<3> ( *lower ) + t * std::get<3> ( *upper );
-                        return;
+                        else {
+                                const auto lower = upper - 1 ;
+                                const float t = ( value - std::get<0> ( *lower ) ) / ( std::get<0> ( *upper ) - std::get<0> ( *lower ) );
+                                r = ( 1.0 - t ) * std::get<1> ( *lower ) + t * std::get<1> ( *upper );
+                                g = ( 1.0 - t ) * std::get<2> ( *lower ) + t * std::get<2> ( *upper );
+                                b = ( 1.0 - t ) * std::get<3> ( *lower ) + t * std::get<3> ( *upper );
+                                return;
+                        }
                 }
                 void convert ( const double value, int& r,  int& g, int& b )
                 {

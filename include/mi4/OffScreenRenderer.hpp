@@ -1,11 +1,10 @@
 /**
  * @file OffScreenRenderer.hpp
- * @brief Class declaration of mi::OffScreenRenderer
+ * @brief Class declaration of mi4::OffScreenRenderer
  * @author Takashi Michikawa <michikawa@acm.org>
  */
 #ifndef MI4_OFFSCREEN_RENDERER_HPP
 #define MI4_OFFSCREEN_RENDERER_HPP 1
-#include <vector>
 #include <memory>
 #include <iostream>
 #include <GLFW/glfw3.h>
@@ -22,33 +21,30 @@ namespace mi4
         private:
                 const int _width;
                 const int _height;
-                bool _isOk;
                 GLFWwindow* _window;
         public:
-                explicit OffScreenRenderer ( const int width = 128, const int height = 128 ) : _width ( width ), _height ( height ), _isOk ( true ), _window ( NULL )
+                explicit OffScreenRenderer ( const int width = 128, const int height = 128 ) : _width ( width ), _height ( height ), _window ( NULL )
                 {
-                        auto* window = this->window();
-
-                        if ( ::glfwInit() == GL_FALSE ) {
-                                this->_isOk = false;
+                        if ( !::glfwInit() ) {
+                                std::cerr<<"glfwInit() failed."<<std::endl;
+                                return;
                         }
 
                         ::glfwWindowHint ( GLFW_VISIBLE, 0 );
                         this->_window = ::glfwCreateWindow ( width, height, "tmp", NULL, NULL );
-                        ::glfwMakeContextCurrent ( window );
 
-                        if ( !window ) {
-                                this->_isOk = false;
+                        if ( !this->_window ) {
+                                std::cerr<<"glfwCreateWindow() failed."<<std::endl;
+                                return;
                         }
-
-                        if ( !this->_isOk ) {
-                                std::cerr << "Init failed." << std::endl;
-                        }
-
+                        this->makeCurrent();
                         return;
                 }
 
-                ~OffScreenRenderer ( void ) = default;
+                ~OffScreenRenderer ( void ) {
+                        ::glfwTerminate();
+                        return;
+                }
 
                 int width ( void ) const
                 {
@@ -64,53 +60,17 @@ namespace mi4
                 {
                         return this->_window;
                 }
+
                 void swapBuffers ( void )
                 {
-                        ::glfwSwapBuffers ( this->_window );
+                        ::glfwSwapBuffers ( this->window() );
                         return;
                 }
-                /*
-                                void getImage ( std::vector<unsigned char>& image )
-                                {
-                                        const auto width  = this->width();
-                                        const auto height = this->height();
-                                        const auto npixels = width * height;
 
-                                        image.assign ( npixels * 3 , 0x00 );
-                                        unsigned char *buf = new unsigned char [ npixels * 4 ];
-
-                                        ::glReadPixels ( 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buf );
-
-                                        for ( auto y = 0 ; y < height ; ++y ) {
-                                                for ( auto x = 0 ; x < width ; ++x ) {
-                                                        const auto idx = y * width + x ;
-                                                        const auto idxBuf = 4 * idx;
-                                                        const auto idxImg = 3 * idx;
-                                                        for ( auto i = 0 ; i < 3 ; ++i ) {
-                                                                image[idxImg + i] = buf[idxBuf + i];
-                                                        }
-                                                }
-                                        }
-                                        delete[] buf;
-                                        return;
-                                }
-
-                                void getDepth ( std::vector<float>& depth )
-                                {
-                                        const auto width  = this->width();
-                                        const auto height = this->height();
-                                        const auto npixels = width * height;
-
-                                        depth.assign( npixels , 0 );
-                                        float *buf = new float [ npixels ];
-                                        ::glReadPixels ( 0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, buf );
-                                        for (auto i = 0 ; i < npixels ; ++i ) {
-                                                depth[i] = buf[i];
-                                        }
-                                        delete[] buf;
-                                        return;
-                                }
-                */
+                void makeCurrent( void) {
+                        ::glfwMakeContextCurrent ( this->window() );
+                        return;
+                }
         };
 }
 #endif

@@ -1,12 +1,9 @@
-
-
-
 #ifndef MI4_XML_HPP
 #define MI4_XML_HPP 1
 #include <memory>
-#include <string>
 #include <list>
 #include <map>
+#include <string>
 #include <iostream>
 #include <sstream>
 
@@ -31,18 +28,13 @@ namespace mi4
                 virtual ~XmlNode ( void ) = default;
                 virtual XmlNodeType getType ( void ) const = 0;
                 virtual bool isLeaf ( void ) const = 0;
-                virtual std::string toString ( const unsigned int = 0 ) const = 0;
-        protected:
-                std::string set_space ( const unsigned int indent ) const
-                {
-                        return std::string ( indent * 4, ' ' );
-                }
+                virtual std::string toString ( const size_t = 0 ) const = 0;
         };
 
         class XmlText : public XmlNode
         {
         public:
-                XmlText ( const std::string& text ) : _text ( text )
+                XmlText ( const std::string& text ) : XmlNode(),  _text ( text )
                 {
                         return;
                 }
@@ -64,11 +56,9 @@ namespace mi4
                         return this->_text;
                 }
 
-                std::string toString ( const unsigned int indent = 0 ) const
+                std::string toString ( const size_t indent = 0 ) const
                 {
-                        std::string str = this->set_space ( indent ) ;
-                        str.append ( this->getText() );
-                        return str;
+                        return std::string(indent * 4, ' ').append(this->getText()).append("\n");
                 }
         private:
                 std::string _text;
@@ -96,15 +86,13 @@ namespace mi4
 
                 XmlElement& addChildElement ( const std::string& name )
                 {
-                        std::unique_ptr<XmlElement> elem ( new XmlElement ( name ) );
-                        this->_children.push_back ( std::move ( elem ) );
+                        this->_children.emplace_back ( new XmlElement ( name )  );
                         return dynamic_cast<XmlElement&> ( * ( this->_children.back().get() ) );
                 }
 
                 XmlText& addChildText ( const std::string& str )
                 {
-                        std::unique_ptr<XmlText> elem ( new XmlText ( str ) );
-                        this->_children.push_back ( std::move ( elem ) );
+                        this->_children.emplace_back ( new XmlText ( str ) );
                         return dynamic_cast<XmlText&> ( * ( this->_children.back().get() ) );
                 }
 
@@ -112,8 +100,8 @@ namespace mi4
                 XmlElement& addAttribute ( const std::string& key, const T& value )
                 {
                         std::stringstream ss;
-                        ss << value;
-                        this->_attributes[key] = ss.str();
+                        ss<<value;
+                        this->_attributes[key] = ss.str();//std::to_string(value);//ss.str();
                         return *this;
                 }
 
@@ -130,22 +118,16 @@ namespace mi4
                 std::string getAttribute ( const std::string& key ) const
                 {
                         const auto& iter = this->_attributes.find ( key );
-
-                        if ( iter != this->_attributes.end() ) {
-                                return iter->second;
-                        } else {
-                                return std::string();        // if key does not exist
-                        }
+                        if ( iter != this->_attributes.end() ) return iter->second;  // if key is found
+                        else                                   return std::string(); // if key does not exist
                 }
 
                 std::list<std::string> getAttributeKeys ( void ) const
                 {
                         std::list<std::string> keys;
-
                         for ( auto& iter : this->_attributes ) {
                                 keys.push_back ( iter.first );
                         }
-
                         return keys;
                 }
 
@@ -154,31 +136,28 @@ namespace mi4
                         return this->_name;
                 }
 
-                virtual std::string toString ( const unsigned int indent = 0 ) const
+                std::string toString ( const size_t indent = 0 ) const
                 {
-                        std::stringstream ss;
-                        // header
-                        ss << this->set_space ( indent );
-                        ss << "<" << this->getName();
-
+                        auto &children = this->_children;
+                        std::string space(indent * 4, ' ');
+                        std::string str;
+                        str.append(space).append("<").append(this->getName());
                         for ( auto& iter : this->_attributes ) {
-                                ss << " " << iter.first << "=" << "\"" << iter.second << "\"";
+                                str.append(" ").append(iter.first).append("=\"").append(iter.second).append("\"");
                         }
-
-                        if ( this->_children.size() == 0 ) {
-                                ss << " />" << std::endl;
-                        } else {
-                                ss << ">" << std::endl;
-
-                                for ( auto& iter : this->_children ) {
-                                        ss << iter->toString ( indent + 1 ) ;
-                                }
-
-                                ss << this->set_space ( indent );
-                                ss << "</" << this->getName() << ">" << std::endl;
+                        str.append(">¥n");
+                        for ( auto& iter : children ) {
+                                str.append(iter->toString ( indent + 1 ) );
                         }
+                        str.append(space).append("</").append(this->getName()).append(">¥n");
+                        return str;
+                }
 
-                        return ss.str();
+        private:
+                std::string to_string_attibute ( void ) const {
+                        std::string attrs;
+
+                        return attrs;
                 }
         private:
                 std::string _name; // element name
@@ -208,9 +187,7 @@ namespace mi4
 
                 std::string toString ( void ) const
                 {
-                        std::string doc ( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" );
-                        doc.append ( this->_root->toString() );
-                        return doc;
+                        return std::string( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" ).append ( this->_root->toString() );
                 }
         private:
                 std::unique_ptr<XmlElement> _root;

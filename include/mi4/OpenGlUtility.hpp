@@ -1,7 +1,8 @@
 #ifndef MI_OPEN_GL_UTILITY_HPP
 #define MI_OPEN_GL_UTILITY_HPP 1
-#include <Eigen/Dense>
+#include <cassert>
 #include <vector>
+#include <Eigen/Dense>
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>
 #else
@@ -37,6 +38,7 @@ namespace mi4
                 }
                 static void perspective ( const double fov, const double aspect, const double znear, const double zfar )
                 {
+                        assert( znear - zfar != 0 );
                         std::vector<double> m ( 16, 0 );
                         double f = 1.0 / std::tan ( 0.5 * fov * M_PI / 180.0 );
                         m[0] = f * 1.0 / aspect;
@@ -54,7 +56,8 @@ namespace mi4
                 }
                 static void ortho2d ( const double  left, const double  right, const double  bottom, const double  top )
                 {
-                        OpenGlUtility::ortho ( left, right, bottom, top, -1, 1 );
+                        ::glOrtho ( left, right, bottom, top, -1, 1 );
+                        //OpenGlUtility::ortho ( left, right, bottom, top, -1, 1 );
                         return;
                 }
         };
