@@ -70,10 +70,10 @@ namespace mi4
                         const Eigen::Vector4d p1 = inv_matrix * p;
 
                         if ( p1.w() != 0.0 ) {
-                                unProj = 1.0 / p1.w() *  Eigen::Vector3d(p1.x(), p1.y(), p1.z());
-                        /*        unPrjP.x() = p1.x() / p1.w();
-                                unPrjP.y() = p1.y() / p1.w();
-                                unPrjP.z() = p1.z() / p1.w(); */
+                                unProj = 1.0 / p1.w() *  Eigen::Vector3d ( p1.x(), p1.y(), p1.z() );
+                                /*        unPrjP.x() = p1.x() / p1.w();
+                                        unPrjP.y() = p1.y() / p1.w();
+                                        unPrjP.z() = p1.z() / p1.w(); */
                         }
 
                         return unPrjP;

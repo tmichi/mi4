@@ -44,7 +44,10 @@ namespace mi4
                 ~Timer ( void )
                 {
                         if ( this->_isAutoPrint ) {
-                                if ( this->_time < 0 ) this->end();
+                                if ( this->_time < 0 ) {
+                                        this->end();
+                                }
+
                                 std::cerr << this->toString() << std::endl;
                         }
                 }
@@ -71,7 +74,7 @@ namespace mi4
                                 return this->toString ( digit, this->estimate_format ( this->_time ) );
                         } else {
                                 std::stringstream ss;
-                                ss << this->key()<< ": \t" << std::setprecision ( digit ) << this->time ( format )
+                                ss << this->key() << ": \t" << std::setprecision ( digit ) << this->time ( format )
                                    << " " << this->get_format_string ( format );
                                 return ss.str();
                         }
@@ -79,24 +82,37 @@ namespace mi4
         private:
                 inline double get_scale ( const time_format format ) const
                 {
-                        if      ( format == TIME_HOUR   ) return 1.0 / 3600.0;
-                        else if ( format == TIME_MINUTE ) return 1.0 / 60.0;
-                        else                              return 1.0;
+                        if      ( format == TIME_HOUR   ) {
+                                return 1.0 / 3600.0;
+                        } else if ( format == TIME_MINUTE ) {
+                                return 1.0 / 60.0;
+                        } else {
+                                return 1.0;
+                        }
                 }
 
                 inline time_format estimate_format ( double t ) const
                 {
-                        if      ( t < 60   ) return TIME_SECOND;
-                        else if ( t < 3600 ) return TIME_MINUTE;
-                        else                 return TIME_HOUR;
+                        if      ( t < 60   ) {
+                                return TIME_SECOND;
+                        } else if ( t < 3600 ) {
+                                return TIME_MINUTE;
+                        } else {
+                                return TIME_HOUR;
+                        }
                 }
 
                 inline std::string get_format_string ( const time_format format ) const
                 {
-                        if      ( format == TIME_SECOND ) return std::string ( "[s]" );
-                        else if ( format == TIME_MINUTE ) return std::string ( "[m]" );
-                        else if ( format == TIME_HOUR   ) return std::string ( "[h]" );
-                        else                              return std::string ( "[?]" );
+                        if      ( format == TIME_SECOND ) {
+                                return std::string ( "[s]" );
+                        } else if ( format == TIME_MINUTE ) {
+                                return std::string ( "[m]" );
+                        } else if ( format == TIME_HOUR   ) {
+                                return std::string ( "[h]" );
+                        } else {
+                                return std::string ( "[?]" );
+                        }
                 }
         private:
                 const std::string _key; // key of timer

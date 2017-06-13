@@ -32,17 +32,21 @@ namespace mi4
                         std::cerr << std::endl;
 
                         if ( this->check() ) {
-                                std::cerr <<" done." << std::endl;
+                                std::cerr << " done." << std::endl;
                         } else {
-                                std::cerr <<" failed." << std::endl;
+                                std::cerr << " failed." << std::endl;
+
                                 for ( auto& s : this->_messages ) {
-                                        std::cerr<<s<<std::endl;
+                                        std::cerr << s << std::endl;
                                 }
                         }
                 }
                 bool run ( void )
                 {
-                        if ( !this->check() ) return false;
+                        if ( !this->check() ) {
+                                return false;
+                        }
+
                         return this->run_main_routine();
                 }
                 ///< @todo must be protected
@@ -50,7 +54,7 @@ namespace mi4
         protected:
                 virtual bool run_main_routine ( void )
                 {
-                        this->add_error_message ("Routine::run_main_routine() called. Declare the method in the subclass.");
+                        this->add_error_message ( "Routine::run_main_routine() called. Declare the method in the subclass." );
                         return false; //always
                 }
 
@@ -59,10 +63,12 @@ namespace mi4
                         return this->_status;
                 }
 
-                void add_error_message ( const std::string& str)
+                void add_error_message ( const std::string& str )
                 {
-                        std::string header("[error]");
-                        this->_messages.push_back(header.append(str));
+                        std::string header = this->_name;
+			header.append( "[error]" );
+			
+                        this->_messages.push_back ( header.append ( str ) );
                         this->_status = false;
                         return;
                 }

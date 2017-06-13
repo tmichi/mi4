@@ -15,11 +15,11 @@ namespace mi4
                 void init ( const float minValue = 0.0f, const float maxValue = 1.0f )
                 {
                         this->clear();
-                        this->add ( minValue,  0.0f, 0.0f, 1.0f );
+                        this->add ( minValue,                            0.0f, 0.0f, 1.0f );
                         this->add ( 0.75f * minValue + 0.25f * maxValue, 0.0f, 1.0f, 1.0f );
                         this->add ( 0.5f  * minValue + 0.5f  * maxValue, 0.0f, 1.0f, 0.0f );
                         this->add ( 0.25f * minValue + 0.75f * maxValue, 1.0f, 1.0f, 0.0f );
-                        this->add ( maxValue,  1.0f, 0.0f, 0.0f );
+                        this->add ( maxValue,                            1.0f, 0.0f, 0.0f );
                         this->sort();
                         return;
                 }
@@ -66,14 +66,12 @@ namespace mi4
                                 g = std::get<2> ( *upper );
                                 b = std::get<3> ( *upper );
                                 return;
-                        }
-                        else if ( upper == values.end() ) {
+                        } else if ( upper == values.end() ) {
                                 r = std::get<1> ( values.back() );
                                 g = std::get<2> ( values.back() );
                                 b = std::get<3> ( values.back() );
                                 return;
-                        }
-                        else {
+                        } else {
                                 const auto lower = upper - 1 ;
                                 const float t = ( value - std::get<0> ( *lower ) ) / ( std::get<0> ( *upper ) - std::get<0> ( *lower ) );
                                 r = ( 1.0f - t ) * std::get<1> ( *lower ) + t * std::get<1> ( *upper );

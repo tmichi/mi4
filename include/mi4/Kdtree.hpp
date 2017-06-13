@@ -62,7 +62,7 @@ namespace mi4
 
                                 const auto numElements = std::distance ( begin, end );
 
-                                if ( static_cast<size_t>(numElements) <= numMaxNode ) {
+                                if ( static_cast<size_t> ( numElements ) <= numMaxNode ) {
                                         this->_points.insert ( this->_points.end(), begin, end );
                                 } else {
                                         this->_dimension = this->find_separation_axis ( begin, end );
@@ -87,16 +87,22 @@ namespace mi4
 
                         void find ( const T& pnt, const double radius, typename std::list<T>& result )
                         {
-                                if ( this->_points.empty() ) return;
+                                if ( this->_points.empty() ) {
+                                        return;
+                                }
+
                                 if ( this->isLeaf() ) {
                                         //typename std::list<T>::iterator iter;
                                         const auto sqr = radius * radius;
-                                        for (const auto& iter : this->_points) {
+
+                                        for ( const auto& iter : this->_points ) {
                                                 double squaredDistance = 0;
+
                                                 // ||iter - pnt ||^2 <= radius^2
                                                 for ( size_t i = 0 ; i < Dim ; i++ ) {
                                                         squaredDistance += ( iter[i] - pnt[i] ) * ( iter[i] - pnt[i] );
                                                 }
+
                                                 if  ( squaredDistance <= sqr ) {
                                                         result.push_back ( iter );
                                                 }
@@ -134,6 +140,7 @@ namespace mi4
                                         const int idx = ( x < delim ) ? 0 : 1;
                                         this->_child[idx].add ( p, numMaxElementsPerNode );
                                 };
+
                                 return;
                         };
 

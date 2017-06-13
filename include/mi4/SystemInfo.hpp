@@ -9,11 +9,11 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <cstdlib>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #include <winsock2.h>
 #include <iphlpapi.h>
-#include <stdlib.h>
 #pragma comment(lib, "IPHLPAPI.lib")
 
 #include <windows.h>
@@ -80,9 +80,9 @@ namespace mi4
                 {
                         std::stringstream ss;
                         ss << std::hex << std::setiosflags ( std::ios::uppercase );
-
                         for ( int i = 0 ; i < 6 ; ++i ) {
                                 ss << std::setw ( 2 ) << std::setfill ( '0' ) << static_cast<int> ( this->_address[i] );
+
                                 if ( i != 5 ) {
                                         ss << ":";
                                 }
@@ -91,8 +91,6 @@ namespace mi4
                         return ss.str();
                 }
         };
-
-
 
 #if defined (WIN32) || defined(_WIN32) || defined(__WIN32__)
         class SystemInfoWindows
@@ -114,6 +112,7 @@ namespace mi4
                                 __cpuid ( CPUInfo, 0x80000004 );
                                 std::memcpy ( CPUBrandString + 32, CPUInfo, sizeof ( CPUInfo ) );
                         }
+
                         return std::string ( CPUBrandString );
                 }
                 static double getMemorySize ( void )
@@ -121,8 +120,12 @@ namespace mi4
                         //ref : https://msdn.microsoft.com/ja-jp/library/windows/desktop/aa366589(v=vs.85).aspx
                         MEMORYSTATUSEX stat;
                         stat.dwLength = sizeof ( MEMORYSTATUSEX );
-                        if ( GlobalMemoryStatusEx ( &stat ) == 0 ) return 0;
-                        else return static_cast<double> ( stat.ullTotalPhys / 1024.0 / 1024 / 1024 ) ;
+
+                        if ( GlobalMemoryStatusEx ( &stat ) == 0 ) {
+                                return 0;
+                        } else {
+                                return static_cast<double> ( stat.ullTotalPhys / 1024.0 / 1024 / 1024 ) ;
+                        }
                 }
                 static double getPeakMemorySize ( void )
                 {
@@ -141,29 +144,42 @@ namespace mi4
                 static std::vector<MacAddress> getMacAddresses ( void )
                 {
                         std::vector<MacAddress> addresses;
-                        ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
-                        PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*) malloc (ulOutBufLen);
-                        if (pAdapterInfo == NULL) return addresses;
-                        if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
-                                free(pAdapterInfo);
-                                pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
-                                if (pAdapterInfo == NULL) return addresses;
+                        ULONG ulOutBufLen = sizeof ( IP_ADAPTER_INFO );
+                        PIP_ADAPTER_INFO pAdapterInfo = ( IP_ADAPTER_INFO* ) malloc ( ulOutBufLen );
+
+                        if ( pAdapterInfo == NULL ) {
+                                return addresses;
                         }
-                      
-                        if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == NO_ERROR) {
+
+                        if ( GetAdaptersInfo ( pAdapterInfo, &ulOutBufLen ) == ERROR_BUFFER_OVERFLOW ) {
+                                free ( pAdapterInfo );
+                                pAdapterInfo = ( IP_ADAPTER_INFO* )malloc ( ulOutBufLen );
+
+                                if ( pAdapterInfo == NULL ) {
+                                        return addresses;
+                                }
+                        }
+
+                        if ( GetAdaptersInfo ( pAdapterInfo, &ulOutBufLen ) == NO_ERROR ) {
                                 PIP_ADAPTER_INFO pAdapter = pAdapterInfo;
-                                while (pAdapter) {
-                                        switch (pAdapter->Type) {
+
+                                while ( pAdapter ) {
+                                        switch ( pAdapter->Type ) {
                                         case MIB_IF_TYPE_ETHERNET:
                                                 unsigned char* ad = pAdapter->Address;
-                                                addresses.push_back(MacAddress(std::to_string(pAdapter->ComboIndex), ad));
+                                                addresses.push_back ( MacAddress ( std::to_string ( pAdapter->ComboIndex ), ad ) );
                                                 break;
                                         }
+
                                         pAdapter = pAdapter->Next;
                                 }
                         }
-                        if (pAdapterInfo != NULL) free(pAdapterInfo);
-                	return addresses;
+
+                        if ( pAdapterInfo != NULL ) {
+                                free ( pAdapterInfo );
+                        }
+
+                        return addresses;
                 }
         };
         using SystemInfoOsSpecific = SystemInfoWindows;
@@ -185,6 +201,12 @@ namespace mi4
                 {
                         return 0;
                 }
+                static std::vector<MacAddress> getMacAddresses ( void )
+                {
+		  std::vector<MacAddress> addresses;
+		  return addresses;
+		}
+
         };
         using SystemInfoOsSpecific = SystemInfoCygwin;
 #elif defined (__APPLE__)
@@ -218,18 +240,20 @@ namespace mi4
                 {
                         std::vector<MacAddress> addresses;
                         ifaddrs* iflist;
-                        if ( getifaddrs ( &iflist ) == 0 )
-                        {
+
+                        if ( getifaddrs ( &iflist ) == 0 ) {
                                 for ( ifaddrs* iter = iflist ;  iter ; iter = iter->ifa_next ) {
                                         sockaddr_dl* dl = reinterpret_cast<sockaddr_dl*> ( iter->ifa_addr );
+
                                         if ( dl->sdl_family == AF_LINK && dl->sdl_type == IFT_ETHER ) {
                                                 unsigned char* addr = reinterpret_cast<unsigned char*> ( LLADDR ( dl ) );
                                                 addresses.push_back ( MacAddress ( iter->ifa_name, addr ) );
                                         }
                                 }
                         }
-                 	freeifaddrs ( iflist );
-                	return addresses;
+
+                        freeifaddrs ( iflist );
+                        return addresses;
                 }
         };
         using SystemInfoOsSpecific = SystemInfoApple;
@@ -240,9 +264,17 @@ namespace mi4
                 static std::string getCpuName ( void )
                 {
                         FILE* cmd = popen ( "grep 'model name' /proc/cpuinfo", "r" );
-                        if ( cmd == NULL ) return std::string ( "error" );
+
+                        if ( cmd == NULL ) {
+                                return std::string ( "error" );
+                        }
+
                         char buf[256];
-                        if ( fread ( buf, 1, sizeof ( buf ) - 1, cmd ) <= 0 ) return std::string ( "Unknown CPU" );
+
+                        if ( fread ( buf, 1, sizeof ( buf ) - 1, cmd ) <= 0 ) {
+                                return std::string ( "Unknown CPU" );
+                        }
+
                         pclose ( cmd );
                         std::string buffer ( buf );
                         auto s = buffer.find_first_of ( ":" ) + 2 ;
@@ -253,9 +285,17 @@ namespace mi4
                 static double getMemorySize ( void )
                 {
                         FILE* cmd = popen ( "grep 'MemTotal' /proc/meminfo", "r" );
-                        if ( cmd == NULL ) return 0;
+
+                        if ( cmd == NULL ) {
+                                return 0;
+                        }
+
                         char buff[256];
-                        if ( fread ( buff, 1, sizeof ( buff ) - 1, cmd ) <= 0 ) return 0;
+
+                        if ( fread ( buff, 1, sizeof ( buff ) - 1, cmd ) <= 0 ) {
+                                return 0;
+                        }
+
                         pclose ( cmd );
                         std::string buffer ( buff );
                         return std::stod ( buffer.substr ( buffer.find_first_of ( ":" ) + 1, buffer.find ( "kB" ) ) ) / 1024 / 1024;
@@ -292,8 +332,9 @@ namespace mi4
                                         }
                                 }
                         }
+
                         close ( fd );
-                	return addresses;
+                        return addresses;
                 }
         };
         using SystemInfoOsSpecific = SystemInfoLinux;
@@ -371,13 +412,15 @@ namespace mi4
                 {
                         return SystemInfoOsSpecific::getPeakMemorySize();
                 }
-
-
-                static std::vector<MacAddress> getMacAddresses( void ) {
+	  
+	        /**
+		 * @brief Get MAC addresses. 
+		 * @return List of Mac addresses
+		 */
+	        static std::vector<MacAddress> getMacAddresses ( void )
+	        {
                         return SystemInfoOsSpecific::getMacAddresses();
                 }
-
-
         };
 }
 #endif

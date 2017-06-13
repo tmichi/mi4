@@ -26,7 +26,7 @@ namespace mi4
                 explicit OffScreenRenderer ( const int width = 128, const int height = 128 ) : _width ( width ), _height ( height ), _window ( NULL )
                 {
                         if ( !::glfwInit() ) {
-                                std::cerr<<"glfwInit() failed."<<std::endl;
+                                std::cerr << "glfwInit() failed." << std::endl;
                                 return;
                         }
 
@@ -34,14 +34,16 @@ namespace mi4
                         this->_window = ::glfwCreateWindow ( width, height, "tmp", NULL, NULL );
 
                         if ( !this->_window ) {
-                                std::cerr<<"glfwCreateWindow() failed."<<std::endl;
+                                std::cerr << "glfwCreateWindow() failed." << std::endl;
                                 return;
                         }
+
                         this->makeCurrent();
                         return;
                 }
 
-                ~OffScreenRenderer ( void ) {
+                ~OffScreenRenderer ( void )
+                {
                         ::glfwTerminate();
                         return;
                 }
@@ -67,7 +69,8 @@ namespace mi4
                         return;
                 }
 
-                void makeCurrent( void) {
+                void makeCurrent ( void )
+                {
                         ::glfwMakeContextCurrent ( this->window() );
                         return;
                 }

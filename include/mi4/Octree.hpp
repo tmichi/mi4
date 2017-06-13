@@ -101,9 +101,17 @@ namespace mi4
 
                                                                 int bminx, bminy, bminz, bmaxx, bmaxy, bmaxz;
 
-                                                                if ( !this->overlap ( mnx, mxx, nmnx, nmxx, bminx, bmaxx ) ) continue;
-                                                                if ( !this->overlap ( mny, mxy, nmny, nmxy, bminy, bmaxy ) ) continue;
-                                                                if ( !this->overlap ( mnz, mxz, nmnz, nmxz, bminz, bmaxz ) ) continue;
+                                                                if ( !this->overlap ( mnx, mxx, nmnx, nmxx, bminx, bmaxx ) ) {
+                                                                        continue;
+                                                                }
+
+                                                                if ( !this->overlap ( mny, mxy, nmny, nmxy, bminy, bmaxy ) ) {
+                                                                        continue;
+                                                                }
+
+                                                                if ( !this->overlap ( mnz, mxz, nmnz, nmxz, bminz, bmaxz ) ) {
+                                                                        continue;
+                                                                }
 
                                                                 const int idx = this->index ( x, y, z, 1 );
                                                                 this->child ( idx ).set ( bminx % d, bminy % d, bminz % d, bmaxx % d, bmaxy % d, bmaxz % d, v, d );

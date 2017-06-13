@@ -17,7 +17,7 @@ namespace mi4
 {
         namespace parser
         {
-                // parse string to numeric value or something. 
+                // parse string to numeric value or something.
                 template <typename T>
                 inline T parse ( const std::string& str );
 
@@ -85,6 +85,7 @@ namespace mi4
                         for ( int i = 0 ; i < argc ; ++i ) {
                                 this->add ( argv[i] );
                         }
+
                         return;
                 }
 
@@ -188,12 +189,15 @@ namespace mi4
                         switch ( this->get_error_code() ) {
                         case ATTRIBUTE_ERROR_OK :
                                 break;
+
                         case ATTRIBUTE_ERROR_KEY_NOT_FOUND :
                                 std::cerr << this->get_key() << " was not found." << std::endl;
                                 break;
+
                         case ATTRIBUTE_ERROR_VALUE_OUT_OF_RANGE :
                                 std::cerr << "key  " << this->get_key() << " is out-of-range." << std::endl;
                                 break;
+
                         default : //  ATTRIBUTE_ERROR_INVALID
                                 std::cerr << "unknown error found." << std::endl;
                                 break;
@@ -204,17 +208,22 @@ namespace mi4
 
                 virtual void print_usage ( void )
                 {
-                        if ( this->is_hidden() ) return;
+                        if ( this->is_hidden() ) {
+                                return;
+                        }
+
                         std::cerr << "\t" << this->_key << ":\t" << this->_message << std::endl;
                         return;
                 }
 
-                virtual void print ( std::ostream& out ) {
-                        out<<"[\""<<this->get_key()<<"\"] "<<this->toString()<<std::endl;
+                virtual void print ( std::ostream& out )
+                {
+                        out << "[\"" << this->get_key() << "\"] " << this->toString() << std::endl;
                         return;
                 }
 
-                virtual std::string toString ( void ) const {
+                virtual std::string toString ( void ) const
+                {
                         return std::string();
                 }
 
@@ -363,25 +372,34 @@ namespace mi4
                                 minValue = maxValue;
                                 maxValue = tmp;
                         }
+
                         return;
                 }
 
                 bool clamp ( T& value )
                 {
                         if ( this->_isMinSet && value < this->_minValue ) {
-                                if ( this->_isOutRangeRejected )  return false;
+                                if ( this->_isOutRangeRejected ) {
+                                        return false;
+                                }
+
                                 value = this->_minValue;
                         }
 
                         if ( this->_isMaxSet && value > this->_maxValue ) {
-                                if ( this->_isOutRangeRejected )  return false;
+                                if ( this->_isOutRangeRejected ) {
+                                        return false;
+                                }
+
                                 value = this->_maxValue;
                         }
+
                         return true;
                 }
         public:
-                std::string toString ( void ) const {
-                        return std::to_string(this->_value);
+                std::string toString ( void ) const
+                {
+                        return std::to_string ( this->_value );
                 }
         };
 
@@ -434,7 +452,8 @@ namespace mi4
                         return *this;
                 }
         public:
-                virtual std::string toString ( void ) const {
+                virtual std::string toString ( void ) const
+                {
                         return this->_value;
                 }
         private:
@@ -467,8 +486,9 @@ namespace mi4
                         return *this;
                 }
         public:
-                virtual std::string toString ( void ) const {
-                        return std::to_string(static_cast<int>(this->_value));
+                virtual std::string toString ( void ) const
+                {
+                        return std::to_string ( static_cast<int> ( this->_value ) );
                 }
 
         private:
@@ -532,11 +552,12 @@ namespace mi4
                         return *this;
                 }
 
-                std::string toString ( void ) const {
+                std::string toString ( void ) const
+                {
                         std::string str;
-                        str.append(this->_attr0->toString());
-                        str.append(" ");
-                        str.append(this->_attr1->toString());
+                        str.append ( this->_attr0->toString() );
+                        str.append ( " " );
+                        str.append ( this->_attr1->toString() );
                         return str;
                 }
         private:
@@ -607,13 +628,14 @@ namespace mi4
                         Attribute::setMessage ( message ) ;
                         return *this;
                 }
-                std::string toString ( void ) const {
+                std::string toString ( void ) const
+                {
                         std::string str;
-                        str.append(this->_attr0->toString());
-                        str.append(" ");
-                        str.append(this->_attr1->toString());
-                        str.append(" ");
-                        str.append(this->_attr2->toString());
+                        str.append ( this->_attr0->toString() );
+                        str.append ( " " );
+                        str.append ( this->_attr1->toString() );
+                        str.append ( " " );
+                        str.append ( this->_attr2->toString() );
                         return str;
                 }
         private:
@@ -626,12 +648,13 @@ namespace mi4
         class ArrayNumericAttribute : public Attribute
         {
         public:
-                ArrayNumericAttribute ( const std::string& key,  std::vector<T>& values ) : Attribute(key)
+                ArrayNumericAttribute ( const std::string& key,  std::vector<T>& values ) : Attribute ( key )
                 {
                         for ( size_t i = 0 ; i < values.size() ; ++i ) {
                                 std::unique_ptr<NumericAttribute<T> > attr ( new NumericAttribute<T> ( key, values[i], i + 1 ) );
                                 this->_attrs.push_back ( std::move ( attr ) );
                         }
+
                         return;
                 }
                 ~ArrayNumericAttribute ( void ) = default;
@@ -640,8 +663,11 @@ namespace mi4
                 bool parse ( const Argument& arg ) const
                 {
                         for ( auto && attr : this->_attrs ) {
-                                if ( !attr->parse ( arg ) ) return false;
+                                if ( !attr->parse ( arg ) ) {
+                                        return false;
+                                }
                         }
+
                         return true;
                 }
 
@@ -650,6 +676,7 @@ namespace mi4
                         for ( auto && attr : this->_attrs ) {
                                 attr->setMin ( min0 );
                         }
+
                         return *this;
                 }
                 ArrayNumericAttribute<T>& setMax ( const T max0 )
@@ -695,11 +722,14 @@ namespace mi4
                         return *this;
                 }
 
-                virtual std::string toString ( void ) const {
+                virtual std::string toString ( void ) const
+                {
                         std::string str;
+
                         for ( auto && attr : this->_attrs ) {
-                                str.append(attr->toString()).append(" ");
+                                str.append ( attr->toString() ).append ( " " );
                         }
+
                         return str;
                 }
         private:
@@ -778,8 +808,11 @@ namespace mi4
                         for ( auto& iter : this->_attr ) {
                                 const bool r0 = iter->parse ( arg );
 
-                                if ( this->is_and() ) result &= r0;
-                                else                  result |= r0;
+                                if ( this->is_and() ) {
+                                        result &= r0;
+                                } else {
+                                        result |= r0;
+                                }
                         }
 
                         if ( !result ) {
@@ -820,9 +853,10 @@ namespace mi4
                         }
                 }
 
-                void print (std::ostream &out ) {
+                void print ( std::ostream& out )
+                {
                         for ( auto && iter : this->_attr ) {
-                                iter->print(out);
+                                iter->print ( out );
                         }
                 }
         private:

@@ -12,35 +12,45 @@ namespace mi4
         private:
 
         public:
-                static bool& isDebugMode ( void ) {
+                static bool& isDebugMode ( void )
+                {
                         static bool isDebugMode = false;
                         return isDebugMode;
                 }
 
-                static void setDebugModeOn( void ) {
+                static void setDebugModeOn ( void )
+                {
                         VolumeDataUtility::isDebugMode() = true;
                         return;
                 }
 
                 template< typename T>
-                static bool save ( VolumeData<T>& data, const std::string& filename ) {
-                        std::ofstream fout(filename.c_str(), std::ios::binary);
+                static bool save ( VolumeData<T>& data, const std::string& filename )
+                {
+                        std::ofstream fout ( filename.c_str(), std::ios::binary );
+
                         if ( !fout ) {
-                                std::cerr<<"open failed."<<std::endl;
+                                std::cerr << "open failed." << std::endl;
                                 return false;
                         }
-                        if ( !data.write(fout) ) {
-                                std::cerr<<"Error occured."<<std::endl;
+
+                        if ( !data.write ( fout ) ) {
+                                std::cerr << "Error occured." << std::endl;
                                 return false;
                         }
+
                         return true;
                 }
 
                 template< typename T>
-                static bool debug_save ( VolumeData<T>& data, const std::string& filename ) {
-                        if ( !VolumeDataUtility::isDebugMode() ) return true; // do nothing.
-                        VolumeDataUtility::save(data, filename);
-                        std::cerr<<"[debug] the result was saved to "<<filename<<std::endl;
+                static bool debug_save ( VolumeData<T>& data, const std::string& filename )
+                {
+                        if ( !VolumeDataUtility::isDebugMode() ) {
+                                return true;        // do nothing.
+                        }
+
+                        VolumeDataUtility::save ( data, filename );
+                        std::cerr << "[debug] the result was saved to " << filename << std::endl;
                         return true;
                 }
 
@@ -66,17 +76,31 @@ namespace mi4
                         Range nbr ( mi4::Point3i ( -1, -1, -1 ), mi4::Point3i ( 1, 1, 1 ) );
 
                         for ( const auto p : Range ( data.getInfo() ) ) {
-                                if ( data.get ( p ) == 0 ) continue;
+                                if ( data.get ( p ) == 0 ) {
+                                        continue;
+                                }
+
                                 for ( const auto& d : nbr ) {
-                                        if ( result.get ( p ) != 0 ) break;
-                                        if ( d == mi4::Point3i ( 0, 0, 0 ) ) continue;
+                                        if ( result.get ( p ) != 0 ) {
+                                                break;
+                                        }
+
+                                        if ( d == mi4::Point3i ( 0, 0, 0 ) ) {
+                                                continue;
+                                        }
 
                                         const auto np = p + d;
 
-                                        if ( !data.getInfo().isValid ( np ) )  continue;
-                                        if ( data.get ( np ) == 0 ) result.set ( p, 1 );
+                                        if ( !data.getInfo().isValid ( np ) ) {
+                                                continue;
+                                        }
+
+                                        if ( data.get ( np ) == 0 ) {
+                                                result.set ( p, 1 );
+                                        }
                                 }
                         }
+
                         //return std::move (result);
                         return result;
                 }
@@ -121,6 +145,7 @@ namespace mi4
                                         this->_bg = 1;
                                         this->_fg = 0;
                                 }
+
                                 return;
                         }
 
@@ -184,14 +209,14 @@ namespace mi4
                         std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ) );
                         return std::move ( result );
                 }
-/*
-                static VolumeData<mi4::Vector3s> distance_field ( const VolumeData<char>& binaryData) {
-                        const auto& info = inData.getInfo();
-                        VolumeData<mi4::Vector3s> resultData (info);
+                /*
+                                static VolumeData<mi4::Vector3s> distance_field ( const VolumeData<char>& binaryData) {
+                                        const auto& info = inData.getInfo();
+                                        VolumeData<mi4::Vector3s> resultData (info);
 
-                        return std::move ( resultData);
-                }
-                */
+                                        return std::move ( resultData);
+                                }
+                                */
 
 
         };

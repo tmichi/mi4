@@ -25,7 +25,11 @@ namespace mi4
 
                         while ( end != std::string::npos ) {
                                 end = line.find_first_of ( delimiter );
-                                if ( line.substr ( 0, end ).length() > 0 ) token.push_back ( line.substr ( 0, end ) );
+
+                                if ( line.substr ( 0, end ).length() > 0 ) {
+                                        token.push_back ( line.substr ( 0, end ) );
+                                }
+
                                 line = line.substr ( end + 1 );
                         }
 

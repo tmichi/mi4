@@ -22,7 +22,7 @@ SET ( INCLUDE_FILES
       VolumeDataCreator.hpp
       VolumeDataUtility.hpp
       Xml.hpp
-      )
+    )
 INSTALL ( FILES ${INCLUDE_FILES}
           DESTINATION include/mi4
           PERMISSIONS OWNER_READ GROUP_READ WORLD_READ )

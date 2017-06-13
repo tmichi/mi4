@@ -38,7 +38,7 @@ namespace mi4
                 }
                 static void perspective ( const double fov, const double aspect, const double znear, const double zfar )
                 {
-                        assert( znear - zfar != 0 );
+                        assert ( znear - zfar != 0 );
                         std::vector<double> m ( 16, 0 );
                         double f = 1.0 / std::tan ( 0.5 * fov * M_PI / 180.0 );
                         m[0] = f * 1.0 / aspect;

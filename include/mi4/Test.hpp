@@ -64,7 +64,8 @@ namespace mi4
                                         std::cerr << "*";
                                 }
                         }
-                        std::cerr<<std::endl;
+
+                        std::cerr << std::endl;
                         this->term();
                         return;
                 }
@@ -99,7 +100,10 @@ namespace mi4
                 template< typename T>
                 static bool checkEquals ( const char* fileName, const int lineNo,  const T expectedValue, const T actualValue )
                 {
-                        if ( expectedValue == actualValue ) return true;
+                        if ( expectedValue == actualValue ) {
+                                return true;
+                        }
+
                         TestCase::add_message ( fileName, lineNo, expectedValue, actualValue );
                         return false;
                 }
@@ -107,7 +111,10 @@ namespace mi4
                 template <typename T>
                 static bool checkEpsilonEquals ( const char* fileName, const int lineNo,  const T expectedValue, const T actualValue, const T epsilon = T ( 1.0e-9 ) )
                 {
-                        if ( std::fabs ( static_cast<double> ( expectedValue - actualValue ) ) < epsilon ) return true;
+                        if ( std::fabs ( static_cast<double> ( expectedValue - actualValue ) ) < epsilon ) {
+                                return true;
+                        }
+
                         TestCase::add_message ( fileName, lineNo, expectedValue, actualValue, epsilon, false );
                         return false;
                 }
@@ -118,8 +125,12 @@ namespace mi4
                 {
                         std::stringstream ss;
                         ss << fileName << ":" << lineNo << ": error. expected value = <" << expectedValue << ">" << ", actual value = <" << actualValue << ">";
-                        if ( !isExact ) ss << ", epsilon=<" << epsilon << ">";
-                        TestCase::get_message().push_back ( ss.str());
+
+                        if ( !isExact ) {
+                                ss << ", epsilon=<" << epsilon << ">";
+                        }
+
+                        TestCase::get_message().push_back ( ss.str() );
                 }
 
                 static std::list<std::string>& get_message ( void )
@@ -182,8 +193,8 @@ namespace mi4
                         if ( TestCase::getNumErrors() == 0 ) {
                                 return EXIT_SUCCESS;
                         } else {
-                                std::string fileName(testname);
-                                fileName.append(TestSuite::replace_str ( __DATE__ )).append(TestSuite::replace_str ( __TIME__ )).append(".log");
+                                std::string fileName ( testname );
+                                fileName.append ( TestSuite::replace_str ( __DATE__ ) ).append ( TestSuite::replace_str ( __TIME__ ) ).append ( ".log" );
                                 std::ofstream fout ( fileName.c_str() );
                                 TestCase::print ( fout );
 
@@ -196,6 +207,7 @@ namespace mi4
                 {
                         std::string str = inStr;
                         const std::string rep_str ( "-" );
+
                         for ( auto pos = str.find ( " " ) ; pos != std::string::npos ; pos = str.find ( " ", 1 + pos ) ) {
                                 str.replace ( pos, 1, rep_str );
                         }

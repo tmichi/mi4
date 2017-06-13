@@ -27,7 +27,7 @@ namespace mi4
                         {
                                 return;
                         }
-                        ~Impl(void) = default;
+                        ~Impl ( void ) = default;
 
                         VolumeData<T>& data ( void )
                         {
@@ -71,18 +71,25 @@ namespace mi4
                         const auto& info = this->_impl->data().getInfo();
                         const auto rp = info.getPointInVoxelCeil ( Point3d ( rad, rad, rad ) );
                         const auto radSqr = rad * rad;
+
                         for ( const auto& d : mi4::Range ( -rp, rp ) ) {
-                                if ( info.getLengthSquared ( d )  > radSqr ) continue;
+                                if ( info.getLengthSquared ( d )  > radSqr ) {
+                                        continue;
+                                }
+
                                 this->fillPoint ( p + d );
                         }
+
                         return *this;
                 }
                 inline VolumeDataCreator<T>& fillPoint ( const Point3i& p )
                 {
                         auto& data = this->_impl->data();
+
                         if ( data.getInfo().isValid ( p ) ) {
                                 data.set ( p, this->getValue() );
                         }
+
                         return *this;
                 }
                 inline VolumeDataCreator<T>& fillBlock ( const Point3i& bmin,  const Point3i& bmax )
@@ -90,6 +97,7 @@ namespace mi4
                         for ( const auto& p : mi4::Range ( bmin, bmax ) ) {
                                 this->fillPoint ( p );
                         }
+
                         return *this;
                 }
         };

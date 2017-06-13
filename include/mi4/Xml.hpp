@@ -58,7 +58,7 @@ namespace mi4
 
                 std::string toString ( const size_t indent = 0 ) const
                 {
-                        return std::string(indent * 4, ' ').append(this->getText()).append("\n");
+                        return std::string ( indent * 4, ' ' ).append ( this->getText() ).append ( "\n" );
                 }
         private:
                 std::string _text;
@@ -100,7 +100,7 @@ namespace mi4
                 XmlElement& addAttribute ( const std::string& key, const T& value )
                 {
                         std::stringstream ss;
-                        ss<<value;
+                        ss << value;
                         this->_attributes[key] = ss.str();//std::to_string(value);//ss.str();
                         return *this;
                 }
@@ -118,16 +118,22 @@ namespace mi4
                 std::string getAttribute ( const std::string& key ) const
                 {
                         const auto& iter = this->_attributes.find ( key );
-                        if ( iter != this->_attributes.end() ) return iter->second;  // if key is found
-                        else                                   return std::string(); // if key does not exist
+
+                        if ( iter != this->_attributes.end() ) {
+                                return iter->second;        // if key is found
+                        } else {
+                                return std::string();        // if key does not exist
+                        }
                 }
 
                 std::list<std::string> getAttributeKeys ( void ) const
                 {
                         std::list<std::string> keys;
+
                         for ( auto& iter : this->_attributes ) {
                                 keys.push_back ( iter.first );
                         }
+
                         return keys;
                 }
 
@@ -138,23 +144,28 @@ namespace mi4
 
                 std::string toString ( const size_t indent = 0 ) const
                 {
-                        auto &children = this->_children;
-                        std::string space(indent * 4, ' ');
+                        auto& children = this->_children;
+                        std::string space ( indent * 4, ' ' );
                         std::string str;
-                        str.append(space).append("<").append(this->getName());
+                        str.append ( space ).append ( "<" ).append ( this->getName() );
+
                         for ( auto& iter : this->_attributes ) {
-                                str.append(" ").append(iter.first).append("=\"").append(iter.second).append("\"");
+                                str.append ( " " ).append ( iter.first ).append ( "=\"" ).append ( iter.second ).append ( "\"" );
                         }
-                        str.append(">¥n");
+
+                        str.append ( ">¥n" );
+
                         for ( auto& iter : children ) {
-                                str.append(iter->toString ( indent + 1 ) );
+                                str.append ( iter->toString ( indent + 1 ) );
                         }
-                        str.append(space).append("</").append(this->getName()).append(">¥n");
+
+                        str.append ( space ).append ( "</" ).append ( this->getName() ).append ( ">¥n" );
                         return str;
                 }
 
         private:
-                std::string to_string_attibute ( void ) const {
+                std::string to_string_attibute ( void ) const
+                {
                         std::string attrs;
 
                         return attrs;
@@ -187,7 +198,7 @@ namespace mi4
 
                 std::string toString ( void ) const
                 {
-                        return std::string( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" ).append ( this->_root->toString() );
+                        return std::string ( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" ).append ( this->_root->toString() );
                 }
         private:
                 std::unique_ptr<XmlElement> _root;
