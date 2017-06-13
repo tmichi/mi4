@@ -25,6 +25,25 @@ namespace mi4
                 }
 
                 template< typename T>
+                static bool open ( VolumeData<T>& data, const std::string& filename, const int headerSize = 0 )
+                {
+                        std::ifstream fin ( filename.c_str(), std::ios::binary );
+
+                        if ( !fin ) {
+                                std::cerr << "open failed." << std::endl;
+                                return false;
+                        }
+			
+			fin.seekg( headerSize);
+			
+                        if ( !data.read ( fin ) ) {
+                                std::cerr << "Error occured." << std::endl;
+                                return false;
+                        }
+
+                        return true;
+                }
+                template< typename T>
                 static bool save ( VolumeData<T>& data, const std::string& filename )
                 {
                         std::ofstream fout ( filename.c_str(), std::ios::binary );
