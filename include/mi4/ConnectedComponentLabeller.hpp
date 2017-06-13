@@ -256,7 +256,8 @@ namespace mi4
 
                 }
 
-                template <typename T> bool getNotNthComponents ( VolumeData<T>& labelData, const id_t n = 1 )
+                template <typename T>
+                bool getNotNthComponents ( VolumeData<T>& labelData, const id_t n = 1 )
                 {
                         auto& codes = this->_rlo.codes();
 

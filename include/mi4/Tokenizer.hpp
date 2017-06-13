@@ -18,17 +18,14 @@ namespace mi4
         public:
                 explicit Tokenizer ( const std::string& str, const std::string& delimiter = std::string ( " " ) )
                 {
-                        this->_token.clear();
+                        auto& token = this->_token;
+                        token.clear();
                         std::string::size_type end = 0;
                         std::string line = str;
 
                         while ( end != std::string::npos ) {
                                 end = line.find_first_of ( delimiter );
-
-                                if ( line.substr ( 0, end ).length() > 0 ) {
-                                        this->_token.push_back ( line.substr ( 0, end ) );
-                                }
-
+                                if ( line.substr ( 0, end ).length() > 0 ) token.push_back ( line.substr ( 0, end ) );
                                 line = line.substr ( end + 1 );
                         }
 
@@ -45,6 +42,7 @@ namespace mi4
                 {
                         return this->_token.at ( i );
                 }
+
         private:
                 std::vector<std::string> _token;
         };

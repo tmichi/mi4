@@ -7,18 +7,21 @@ if (UNIX AND NOT APPLE)
 	SET (LINUX TRUE)
 endif()
 
+set(MI4_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include")
+include_directories (${MI4_INCLUDE_DIRS})
+
 #packages
 find_package(OpenGL)
 find_package(glfw3)
 find_package(GLEW)
 
 if (glfw3_FOUND)
-    include_directories($(GLFW3_INCLUDE_DIRS))
+    include_directories(${GLFW3_INCLUDE_DIRS})
     LINK_DIRECTORIES(${GLFW3_LIB_DIRS})
 endif()
 
 if (GLEW_FOUND)
-    include_directories($(GLEW_INCLUDE_DIRS))
+    include_directories(${GLEW_INCLUDE_DIRS})
     LINK_DIRECTORIES(${GLEW_LIB_DIRS})
 endif()
 
@@ -27,8 +30,7 @@ if (Eigen3_FOUND)
 	include_directories (${EIGEN3_INCLUDE_DIRS})
 endif (Eigen3_FOUND)
 
-set(MI4_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include")
-include_directories (${MI4_INCLUDE_DIRS})
+
 
 ENABLE_TESTING()
 if (WIN32)

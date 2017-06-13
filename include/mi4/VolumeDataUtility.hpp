@@ -12,6 +12,40 @@ namespace mi4
         private:
 
         public:
+                static bool& isDebugMode ( void ) {
+                        static bool isDebugMode = false;
+                        return isDebugMode;
+                }
+
+                static void setDebugModeOn( void ) {
+                        VolumeDataUtility::isDebugMode() = true;
+                        return;
+                }
+
+                template< typename T>
+                static bool save ( VolumeData<T>& data, const std::string& filename ) {
+                        std::ofstream fout(filename.c_str(), std::ios::binary);
+                        if ( !fout ) {
+                                std::cerr<<"open failed."<<std::endl;
+                                return false;
+                        }
+                        if ( !data.write(fout) ) {
+                                std::cerr<<"Error occured."<<std::endl;
+                                return false;
+                        }
+                        return true;
+                }
+
+                template< typename T>
+                static bool debug_save ( VolumeData<T>& data, const std::string& filename ) {
+                        if ( !VolumeDataUtility::isDebugMode() ) return true; // do nothing.
+                        VolumeDataUtility::save(data, filename);
+                        std::cerr<<"[debug] the result was saved to "<<filename<<std::endl;
+                        return true;
+                }
+
+
+
 
                 template <typename T>
                 static VolumeData<T> binarize ( const VolumeData<T>& data, const T threshold )
@@ -158,6 +192,8 @@ namespace mi4
                         return std::move ( resultData);
                 }
                 */
+
+
         };
 }
 #endif //MI4_VOLUME_DATA_UTILITY_HPP

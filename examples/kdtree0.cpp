@@ -25,7 +25,7 @@ int main ( int argc, char** argv )
                 Eigen::Vector3d& v0 = *iter;
                 Eigen::Vector3d d = *iter - v;
                 double sqrtDist = d.x() * d.x() + d.y() * d.y() + d.z() * d.z();
-                std::cerr << v0.x() << " " << v0.y() << " " << v0.z() << " " << sqrtDist << std::endl;
+                std::cerr << v0.x() << " " << v0.y() << " " << v0.z() << "\t " << sqrtDist << std::endl;
         }
 
         return 0;

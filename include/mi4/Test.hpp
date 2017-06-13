@@ -99,10 +99,7 @@ namespace mi4
                 template< typename T>
                 static bool checkEquals ( const char* fileName, const int lineNo,  const T expectedValue, const T actualValue )
                 {
-                        if ( expectedValue == actualValue ) {
-                                return true;
-                        }
-
+                        if ( expectedValue == actualValue ) return true;
                         TestCase::add_message ( fileName, lineNo, expectedValue, actualValue );
                         return false;
                 }
@@ -110,10 +107,7 @@ namespace mi4
                 template <typename T>
                 static bool checkEpsilonEquals ( const char* fileName, const int lineNo,  const T expectedValue, const T actualValue, const T epsilon = T ( 1.0e-9 ) )
                 {
-                        if ( std::fabs ( static_cast<double> ( expectedValue - actualValue ) ) < epsilon ) {
-                                return true;
-                        }
-
+                        if ( std::fabs ( static_cast<double> ( expectedValue - actualValue ) ) < epsilon ) return true;
                         TestCase::add_message ( fileName, lineNo, expectedValue, actualValue, epsilon, false );
                         return false;
                 }
@@ -124,12 +118,8 @@ namespace mi4
                 {
                         std::stringstream ss;
                         ss << fileName << ":" << lineNo << ": error. expected value = <" << expectedValue << ">" << ", actual value = <" << actualValue << ">";
-
-                        if ( !isExact ) {
-                                ss << ", epsilon=<" << epsilon << ">";
-                        }
-
-                        TestCase::get_message().push_back ( ss.str() );
+                        if ( !isExact ) ss << ", epsilon=<" << epsilon << ">";
+                        TestCase::get_message().push_back ( ss.str());
                 }
 
                 static std::list<std::string>& get_message ( void )
@@ -141,14 +131,7 @@ namespace mi4
                 std::string _testName;
                 std::list<void ( * ) ( void )> _tests;
         };
-        /*
-                #define ASSERT_EQUALS(expectedValue, actualValue)			\
-                		if(!TestCase::checkEquals( __FILE__, __LINE__, expectedValue, actualValue))return
-                #define ASSERT_EPSILON_EQUALS_DEFAULT(expectedValue, actualValue)	\
-                		if(!TestCase::checkEpsilonEquals( __FILE__, __LINE__, expectedValue, actualValue))return
-                #define ASSERT_EPSILON_EQUALS(expectedValue, actualValue, epsilon)	\
-                		if(!TestCase::checkEpsilonEquals( __FILE__, __LINE__, expectedValue, actualValue, epsilon))return
-        */
+
         /**
          * @class TestSuite "TestSuite.hpp"  "mi/TestSuite.hpp"
          * @brief Test suite class.
@@ -157,8 +140,11 @@ namespace mi4
         class TestSuite
         {
         private:
-                TestSuite ( const TestSuite& );
+
+                TestSuite       ( const TestSuite& );
                 void operator = ( const TestSuite& );
+                TestSuite       ( TestSuite&& );
+                void operator = ( TestSuite&& );
 
                 TestSuite ( void ) = default;
                 ~TestSuite ( void ) = default;
@@ -196,15 +182,12 @@ namespace mi4
                         if ( TestCase::getNumErrors() == 0 ) {
                                 return EXIT_SUCCESS;
                         } else {
-                                const std::string dateStr = TestSuite::replace_str ( __DATE__ );
-                                const std::string timeStr = TestSuite::replace_str ( __TIME__ );
-                                std::stringstream ss;
-                                ss << testname << "-" << dateStr << "-" << timeStr << ".log";
-
-                                std::ofstream fout ( ss.str().c_str() );
+                                std::string fileName(testname);
+                                fileName.append(TestSuite::replace_str ( __DATE__ )).append(TestSuite::replace_str ( __TIME__ )).append(".log");
+                                std::ofstream fout ( fileName.c_str() );
                                 TestCase::print ( fout );
 
-                                std::cerr << "error(s) found. see " << ss.str() << "." << std::endl;
+                                std::cerr << "error(s) found. see " << fileName << "." << std::endl;
                                 return EXIT_FAILURE;
                         }
                 }
@@ -213,16 +196,12 @@ namespace mi4
                 {
                         std::string str = inStr;
                         const std::string rep_str ( "-" );
-                        const std::string space_str ( " " );
-
-                        for ( std::string::size_type pos = str.find ( space_str ) ; pos != std::string::npos ; pos = str.find ( space_str, rep_str.length() + pos ) ) {
-                                str.replace ( pos, space_str.length(), rep_str );
+                        for ( auto pos = str.find ( " " ) ; pos != std::string::npos ; pos = str.find ( " ", 1 + pos ) ) {
+                                str.replace ( pos, 1, rep_str );
                         }
 
-                        const std::string colon_str ( ":" );
-
-                        for (  std::string::size_type pos = str.find ( colon_str ) ; pos != std::string::npos ; pos = str.find ( colon_str, rep_str.length() + pos ) ) {
-                                str.replace ( pos, colon_str.length(), rep_str );
+                        for ( auto pos = str.find ( ":" ) ; pos != std::string::npos ; pos = str.find ( ":", 1 + pos ) ) {
+                                str.replace ( pos, 1, rep_str );
                         }
 
                         return str;

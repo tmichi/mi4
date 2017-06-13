@@ -17,6 +17,7 @@ namespace mi4
 {
         namespace parser
         {
+                // parse string to numeric value or something. 
                 template <typename T>
                 inline T parse ( const std::string& str );
 
@@ -74,15 +75,16 @@ namespace mi4
         class Argument
         {
         private:
-                Argument ( const Argument& );
-                void operator = ( const Argument& );
+                Argument ( Argument&& ) = delete;
+                Argument ( const Argument& ) = delete;
+                void operator = ( const Argument& ) = delete;
+                void operator = ( Argument&& ) = delete;
         public:
                 explicit Argument ( int argc = 0, char** argv = NULL )
                 {
                         for ( int i = 0 ; i < argc ; ++i ) {
                                 this->add ( argv[i] );
                         }
-
                         return;
                 }
 
@@ -107,8 +109,7 @@ namespace mi4
                 template <typename T>
                 T get ( const std::string& key, const int offset = 1 ) const
                 {
-                        const int index = this->find ( key, offset );
-                        return this->get<T> ( index ) ;
+                        return this->get<T> ( this->find ( key, offset ) ) ;
                 }
 
                 template <typename T>
@@ -187,15 +188,12 @@ namespace mi4
                         switch ( this->get_error_code() ) {
                         case ATTRIBUTE_ERROR_OK :
                                 break;
-
                         case ATTRIBUTE_ERROR_KEY_NOT_FOUND :
                                 std::cerr << this->get_key() << " was not found." << std::endl;
                                 break;
-
                         case ATTRIBUTE_ERROR_VALUE_OUT_OF_RANGE :
                                 std::cerr << "key  " << this->get_key() << " is out-of-range." << std::endl;
                                 break;
-
                         default : //  ATTRIBUTE_ERROR_INVALID
                                 std::cerr << "unknown error found." << std::endl;
                                 break;
@@ -206,10 +204,7 @@ namespace mi4
 
                 virtual void print_usage ( void )
                 {
-                        if ( this->is_hidden() ) {
-                                return;
-                        }
-
+                        if ( this->is_hidden() ) return;
                         std::cerr << "\t" << this->_key << ":\t" << this->_message << std::endl;
                         return;
                 }
@@ -368,28 +363,20 @@ namespace mi4
                                 minValue = maxValue;
                                 maxValue = tmp;
                         }
-
                         return;
                 }
 
                 bool clamp ( T& value )
                 {
                         if ( this->_isMinSet && value < this->_minValue ) {
-                                if ( this->_isOutRangeRejected ) {
-                                        return false;
-                                }
-
+                                if ( this->_isOutRangeRejected )  return false;
                                 value = this->_minValue;
                         }
 
                         if ( this->_isMaxSet && value > this->_maxValue ) {
-                                if ( this->_isOutRangeRejected ) {
-                                        return false;
-                                }
-
+                                if ( this->_isOutRangeRejected )  return false;
                                 value = this->_maxValue;
                         }
-
                         return true;
                 }
         public:
@@ -566,8 +553,10 @@ namespace mi4
                         _attr1 ( new NumericAttribute<T> ( key, v1, 2 ) ),
                         _attr2 ( new NumericAttribute<T> ( key, v2, 3 ) )
                 {
+                        return;
                 }
                 ~TripleNumericAttribute ( void ) = default;
+
                 bool parse ( const Argument& arg ) const
                 {
                         return this->_attr0->parse ( arg ) && this->_attr1->parse ( arg ) && this->_attr2->parse ( arg );
@@ -622,9 +611,9 @@ namespace mi4
                         std::string str;
                         str.append(this->_attr0->toString());
                         str.append(" ");
-                        str.append(this->_attr1.toString());
+                        str.append(this->_attr1->toString());
                         str.append(" ");
-                        str.append(this->_attr2.toString());
+                        str.append(this->_attr2->toString());
                         return str;
                 }
         private:
@@ -643,7 +632,6 @@ namespace mi4
                                 std::unique_ptr<NumericAttribute<T> > attr ( new NumericAttribute<T> ( key, values[i], i + 1 ) );
                                 this->_attrs.push_back ( std::move ( attr ) );
                         }
-
                         return;
                 }
                 ~ArrayNumericAttribute ( void ) = default;
@@ -652,19 +640,16 @@ namespace mi4
                 bool parse ( const Argument& arg ) const
                 {
                         for ( auto && attr : this->_attrs ) {
-                                if ( !attr->parse ( arg ) ) {
-                                        return false;
-                                }
+                                if ( !attr->parse ( arg ) ) return false;
                         }
-
                         return true;
                 }
+
                 ArrayNumericAttribute<T>& setMin ( const T min0 )
                 {
                         for ( auto && attr : this->_attrs ) {
                                 attr->setMin ( min0 );
                         }
-
                         return *this;
                 }
                 ArrayNumericAttribute<T>& setMax ( const T max0 )
@@ -726,12 +711,6 @@ namespace mi4
         private:
                 bool _isOr;
                 std::list<std::unique_ptr<Attribute> > _attr;
-        private:
-                AttributeSet ( const AttributeSet& that ) = delete;
-                AttributeSet& operator = ( const AttributeSet& that ) = delete;
-                AttributeSet ( AttributeSet&& that ) = delete;
-                AttributeSet& operator = ( AttributeSet&& that ) = delete;
-
         public:
                 AttributeSet ( void ) : _isOr ( false )
                 {
@@ -799,13 +778,9 @@ namespace mi4
                         for ( auto& iter : this->_attr ) {
                                 const bool r0 = iter->parse ( arg );
 
-                                if ( this->is_and() ) {
-                                        result &= r0;
-                                } else {
-                                        result |= r0;
-                                }
+                                if ( this->is_and() ) result &= r0;
+                                else                  result |= r0;
                         }
-
 
                         if ( !result ) {
                                 std::cerr << "Error" << std::endl;

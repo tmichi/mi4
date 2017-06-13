@@ -1,7 +1,8 @@
-#ifndef MI_ROUTINE_HPP
-#define MI_ROUTINE_HPP 1
+#ifndef MI4_ROUTINE_HPP
+#define MI4_ROUTINE_HPP 1
 #include <iostream>
 #include <string>
+#include <deque>
 namespace mi4
 {
         /**
@@ -18,6 +19,7 @@ namespace mi4
         private:
                 const std::string _name;
                 bool _status;
+                std::deque<std::string> _messages;
         protected:
                 explicit Routine ( const std::string& name ) : _name ( name ), _status ( true )
                 {
@@ -30,9 +32,12 @@ namespace mi4
                         std::cerr << std::endl;
 
                         if ( this->check() ) {
-                                std::cerr << this->_name << " done" << std::endl;
+                                std::cerr <<" done." << std::endl;
                         } else {
-                                std::cerr << this->_name << " failed" << std::endl;
+                                std::cerr <<" failed." << std::endl;
+                                for ( auto& s : this->_messages ) {
+                                        std::cerr<<s<<std::endl;
+                                }
                         }
                 }
                 bool run ( void )
@@ -40,10 +45,12 @@ namespace mi4
                         if ( !this->check() ) return false;
                         return this->run_main_routine();
                 }
+                ///< @todo must be protected
+
         protected:
                 virtual bool run_main_routine ( void )
                 {
-                        this->set_failed();
+                        this->add_error_message ("Routine::run_main_routine() called. Declare the method in the subclass.");
                         return false; //always
                 }
 
@@ -52,9 +59,12 @@ namespace mi4
                         return this->_status;
                 }
 
-                void set_failed ( void )
+                void add_error_message ( const std::string& str)
                 {
+                        std::string header("[error]");
+                        this->_messages.push_back(header.append(str));
                         this->_status = false;
+                        return;
                 }
         };
 }

@@ -1,15 +1,14 @@
 #ifndef MI4_SYSTEM_INFO_HPP
 #define MI4_SYSTEM_INFO_HPP 1
-#include <string>
-#include <fstream>
+
 #include <iostream>
 #include <iomanip>
+#include <sstream>
+#include <array>
+#include <vector>
+#include <string>
 #include <thread>
 #include <chrono>
-#include <ctime>
-#include <array>
-#include <ctime>
-#include <memory>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #include <windows.h>
@@ -17,22 +16,84 @@
 #include <intrin.h>
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
+
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <stdlib.h>
+#pragma comment(lib, "IPHLPAPI.lib")
+
 #elif defined (__CYGWIN__)
 #include <unistd.h>
 #elif defined (__APPLE__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #include <sys/resource.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if_dl.h>
+#include <net/if.h>
+#include <net/if_types.h>
+#include <ifaddrs.h>
+
 #elif defined(__linux__)
 #include <sys/resource.h>
 #include <sys/types.h>
 
+#include <unistd.h>
+#include <cstring>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <net/if.h>
 #else
 
 #endif // defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
 namespace mi4
 {
+        class MacAddress
+        {
+        private:
+                std::string _ifName;
+                std::array<unsigned char, 6> _address;
+        public:
+                MacAddress ( const std::string& ifName, unsigned char* addr ) : _ifName ( ifName )
+                {
+                        for ( int i = 0 ; i < 6 ; ++i ) {
+                                this->_address[i] = addr[i];
+                        }
+                        return;
+                }
+
+                MacAddress ( const MacAddress& that ) = default;
+                MacAddress& operator = ( const MacAddress& that ) = default;
+                MacAddress (  MacAddress&& that ) = default;
+                MacAddress& operator = ( MacAddress&& that ) = default;
+                ~MacAddress ( void ) = default;
+
+                std::string getName ( void ) const
+                {
+                        return this->_ifName;
+                }
+
+                std::string toString ( void ) const
+                {
+                        std::stringstream ss;
+                        ss << std::hex << std::setiosflags ( std::ios::uppercase );
+
+                        for ( int i = 0 ; i < 6 ; ++i ) {
+                                ss << std::setw ( 2 ) << std::setfill ( '0' ) << static_cast<int> ( this->_address[i] );
+                                if ( i != 5 ) {
+                                        ss << ":";
+                                }
+                        }
+
+                        return ss.str();
+                }
+        };
+
+
+
 #if defined (WIN32) || defined(_WIN32) || defined(__WIN32__)
         class SystemInfoWindows
         {
@@ -60,12 +121,8 @@ namespace mi4
                         //ref : https://msdn.microsoft.com/ja-jp/library/windows/desktop/aa366589(v=vs.85).aspx
                         MEMORYSTATUSEX stat;
                         stat.dwLength = sizeof ( MEMORYSTATUSEX );
-
-                        if ( GlobalMemoryStatusEx ( &stat ) == 0 ) {
-                                return 0;
-                        }
-
-                        return static_cast<double> ( stat.ullTotalPhys / 1024.0 / 1024 / 1024 ) ;
+                        if ( GlobalMemoryStatusEx ( &stat ) == 0 ) return 0;
+                        else return static_cast<double> ( stat.ullTotalPhys / 1024.0 / 1024 / 1024 ) ;
                 }
                 static double getPeakMemorySize ( void )
                 {
@@ -81,6 +138,14 @@ namespace mi4
                         CloseHandle ( hProcess );
                         return peakMemory; //bytes
                 }
+                static std::vector<MacAddress> getMacAddresses ( void )
+                {
+                        std::vector<MacAddress> addresses;
+                        // todo : add code here
+                	return addresses;
+                }
+
+
         };
         using SystemInfoOsSpecific = SystemInfoWindows;
 #elif defined (__CYGWIN__)
@@ -104,12 +169,11 @@ namespace mi4
         };
         using SystemInfoOsSpecific = SystemInfoCygwin;
 #elif defined (__APPLE__)
-        class SystemInfoPosix
+        class SystemInfoApple
         {
         public :
                 static std::string getCpuName ( void )
                 {
-
                         char result[256];
                         size_t size = 256;
                         sysctlbyname ( "machdep.cpu.brand_string", &result[0], &size, NULL, 0 );
@@ -131,8 +195,25 @@ namespace mi4
                         peakMemory = static_cast<double> ( rusage.ru_maxrss );
                         return peakMemory; //
                 }
+                static std::vector<MacAddress> getMacAddresses ( void )
+                {
+                        std::vector<MacAddress> addresses;
+                        ifaddrs* iflist;
+                        if ( getifaddrs ( &iflist ) == 0 )
+                        {
+                                for ( ifaddrs* iter = iflist ;  iter ; iter = iter->ifa_next ) {
+                                        sockaddr_dl* dl = reinterpret_cast<sockaddr_dl*> ( iter->ifa_addr );
+                                        if ( dl->sdl_family == AF_LINK && dl->sdl_type == IFT_ETHER ) {
+                                                unsigned char* addr = reinterpret_cast<unsigned char*> ( LLADDR ( dl ) );
+                                                addresses.push_back ( MacAddress ( iter->ifa_name, addr ) );
+                                        }
+                                }
+                        }
+                 	freeifaddrs ( iflist );
+                	return addresses;
+                }
         };
-        using SystemInfoOsSpecific = SystemInfoPosix;
+        using SystemInfoOsSpecific = SystemInfoApple;
 #elif defined (__linux__)
         class SystemInfoLinux
         {
@@ -158,7 +239,6 @@ namespace mi4
                         if ( fread ( buff, 1, sizeof ( buff ) - 1, cmd ) <= 0 ) return 0;
                         pclose ( cmd );
                         std::string buffer ( buff );
-			// MemTotal:        8069288 kB
                         return std::stod ( buffer.substr ( buffer.find_first_of ( ":" ) + 1, buffer.find ( "kB" ) ) ) / 1024 / 1024;
                 }
                 static double getPeakMemorySize ( void )
@@ -166,6 +246,35 @@ namespace mi4
                         struct rusage rusage;
                         getrusage ( RUSAGE_SELF, &rusage );
                         return static_cast<double> ( rusage.ru_maxrss ) * 1024L;
+                }
+                static std::vector<MacAddress> getMacAddresses ( void )
+                {
+                        std::vector<MacAddress> addresses;
+                        int fd = socket ( AF_INET, SOCK_DGRAM, 0 );
+                        ifconf ifc;
+                        ifreq ifs[16];
+                        ifc.ifc_len = sizeof ( ifreq ) * 16;
+                        ifc.ifc_req = ifs;
+
+                        if ( ioctl ( fd, SIOCGIFCONF, &ifc ) == 0 ) {
+                                ifreq* fend = ifs + ( ifc.ifc_len / sizeof ( ifreq ) );
+
+                                for ( ifreq* ifr = ifc.ifc_req; ifr < fend ; ifr++ ) {
+                                        if ( ifr->ifr_addr.sa_family == AF_INET ) {
+                                                ifreq ifreq0;
+                                                std::strncpy ( ifreq0.ifr_name, ifr->ifr_name, sizeof ( ifreq0.ifr_name ) );
+
+                                                if ( ioctl ( fd, SIOCGIFHWADDR, &ifreq0 ) < 0 ) {
+                                                        continue;
+                                                }
+
+                                                unsigned char* address = reinterpret_cast<unsigned char*> ( ifreq0.ifr_hwaddr.sa_data );
+                                                addresses.push_back ( MacAddress ( ifreq0.ifr_name, address ) );
+                                        }
+                                }
+                        }
+                        close ( fd );
+                	return addresses;
                 }
         };
         using SystemInfoOsSpecific = SystemInfoLinux;
@@ -186,6 +295,11 @@ namespace mi4
                 {
                         return 0;
                 }
+                static std::vector<MacAddress> getMacAddresses ( void )
+                {
+                        std::vector<MacAddress> addresses;
+                        return addresses;
+                }
         };
         using SystemInfoOsSpecific = SystemInfoUnknown;
 #endif
@@ -203,7 +317,7 @@ namespace mi4
 
                 /**
                  * @brief return memory size in giga bytes
-                 * @return memory size
+                 * @return memory size in GB
                  */
                 static double getMemorySize ( void )
                 {
@@ -238,6 +352,13 @@ namespace mi4
                 {
                         return SystemInfoOsSpecific::getPeakMemorySize();
                 }
+
+
+                static std::vector<MacAddress> getMacAddresses( void ) {
+                        return SystemInfoOsSpecific::getMacAddresses();
+                }
+
+
         };
 }
 #endif

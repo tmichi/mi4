@@ -60,14 +60,15 @@ namespace mi4
                         {
                                 this->_points.clear();
 
-                                const size_t numElements = std::distance ( begin, end );
+                                const auto numElements = std::distance ( begin, end );
 
                                 if ( numElements <= numMaxNode ) {
                                         this->_points.insert ( this->_points.end(), begin, end );
                                 } else {
                                         this->_dimension = this->find_separation_axis ( begin, end );
                                         std::sort ( begin, end, less_vec_coord ( this->_dimension ) );
-                                        typename std::vector<T>::iterator center = begin + static_cast<size_t> ( numElements / 2 );
+                                        //typename std::vector<T>::iterator center = begin + static_cast<size_t> ( numElements / 2 );
+                                        auto center = begin + static_cast<size_t> ( numElements / 2 );
                                         this->_points.push_back ( *center );
 
                                         // Create node.
@@ -86,28 +87,23 @@ namespace mi4
 
                         void find ( const T& pnt, const double radius, typename std::list<T>& result )
                         {
-                                if ( this->_points.empty() ) {
-                                        return;
-                                }
-
+                                if ( this->_points.empty() ) return;
                                 if ( this->isLeaf() ) {
-                                        typename std::list<T>::iterator iter;
-                                        const double sqr = radius * radius;
-
-                                        for ( iter = this->_points.begin() ; iter != this->_points.end() ; iter++ ) {
-                                                double check = 0;
-
+                                        //typename std::list<T>::iterator iter;
+                                        const auto sqr = radius * radius;
+                                        for (const auto& iter : this->_points) {
+                                                double squaredDistance = 0;
+                                                // ||iter - pnt ||^2 <= radius^2
                                                 for ( size_t i = 0 ; i < Dim ; i++ ) {
-                                                        check += ( iter->operator[] ( i ) - pnt[i] ) * ( iter->operator[] ( i ) - pnt[i] );
+                                                        squaredDistance += ( iter[i] - pnt[i] ) * ( iter[i] - pnt[i] );
                                                 }
-
-                                                if  ( check <= sqr ) {
-                                                        result.push_back ( *iter );
+                                                if  ( squaredDistance <= sqr ) {
+                                                        result.push_back ( iter );
                                                 }
                                         }
                                 } else {
-                                        const double p = this->_points.begin()->operator[] ( this->_dimension ); // separator
-                                        const double x = pnt[this->_dimension]; // target
+                                        const auto p = this->_points.front()[this->_dimension]; // separator
+                                        const auto x = pnt[this->_dimension]; // target
 
                                         if ( fabs ( x - p ) <= radius ) {
                                                 this->_child[0].find ( pnt, radius, result );
@@ -133,12 +129,11 @@ namespace mi4
                                                 points.clear();
                                         }
                                 } else {
-                                        const double delim = this->_points.begin()->operator[] ( this->_dimension );
-                                        const double x = p[this->_dimension];
+                                        const auto delim = this->_points.front[this->_dimension];
+                                        const auto x = p[this->_dimension];
                                         const int idx = ( x < delim ) ? 0 : 1;
                                         this->_child[idx].add ( p, numMaxElementsPerNode );
                                 };
-
                                 return;
                         };
 
@@ -160,7 +155,7 @@ namespace mi4
                                 T bmin = *begin;
                                 T bmax = *begin;
 
-                                for ( typename std::vector<T>::iterator iter = begin ; iter != end ; ++iter ) {
+                                for ( auto iter = begin ; iter != end ; ++iter ) {
                                         T p = *iter;
 
                                         for ( size_t i = 0 ; i < Dim ; i++ ) {
@@ -298,7 +293,7 @@ namespace mi4
                                 this->find ( p, radius, node, true );
                         }
 
-                        return * ( node.begin() );
+                        return node.front(); // * ( node.begin() );
                 }
 
                 void add ( const T& element )
