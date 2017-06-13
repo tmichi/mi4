@@ -40,16 +40,16 @@ public:
         template <typename T>
         static void assert_epsilon_equals_check ( void )
         {
-                T a0 = 0;
-                T b0 = 0;
+                T a0 = T(0);
+                T b0 = T(0);
                 ASSERT_EPSILON_EQUALS_DEFAULT ( a0, b0 );
 
-                T a1 = 0;
-                T b1 = 1.0e-10;
+                T a1 = T(0);
+                T b1 = T(1.0e-10);
                 ASSERT_EPSILON_EQUALS_DEFAULT ( a1, b1 );
 
-                T a2 = 0;
-                T b2 = -1.0e-10;
+                T a2 = T(0);
+                T b2 = T(-1.0e-10);
                 ASSERT_EPSILON_EQUALS_DEFAULT ( a2, b2 );
         }
 };

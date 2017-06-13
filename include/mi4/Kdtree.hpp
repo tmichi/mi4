@@ -62,7 +62,7 @@ namespace mi4
 
                                 const auto numElements = std::distance ( begin, end );
 
-                                if ( numElements <= numMaxNode ) {
+                                if ( static_cast<size_t>(numElements) <= numMaxNode ) {
                                         this->_points.insert ( this->_points.end(), begin, end );
                                 } else {
                                         this->_dimension = this->find_separation_axis ( begin, end );

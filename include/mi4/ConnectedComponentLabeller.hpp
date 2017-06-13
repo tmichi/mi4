@@ -100,7 +100,7 @@ namespace mi4
 
                                 for ( auto z = 0 ; z < size.z() ; ++z ) {
                                         for ( auto y = 0 ; y < size.y() ; ++y ) {
-                                                idx.push_back ( codes.size() );
+                                                idx.push_back ( static_cast<int>(codes.size()) );
                                                 auto start = 0;
                                                 auto value0 = data.get ( start, y, z );
                                                 short int length = 1;
@@ -128,7 +128,7 @@ namespace mi4
                                         }
                                 }
 
-                                idx.push_back ( codes.size() );
+                                idx.push_back ( static_cast<int>(codes.size()) );
                                 return;
                         }
 
@@ -184,7 +184,7 @@ namespace mi4
                         int count = 1;
 
                         for ( size_t i = 0 ; i < codes.size() ; ++i ) {
-                                const int parent = this->get_parent ( i );
+                                const int parent = this->get_parent ( static_cast<int>(i) );
 
                                 if ( parent == static_cast<int> ( i ) ) {
                                         this->_labels[i] = count;
@@ -202,14 +202,14 @@ namespace mi4
                                 std::vector<std::pair<int, id_t> > pairs;
 
                                 for ( size_t i = 0 ; i < voxelCount.size() ; ++i ) {
-                                        pairs.push_back ( std::make_pair ( - voxelCount[i], i ) );
+                                        pairs.push_back ( std::make_pair ( - voxelCount[i], static_cast<id_t>(i) ) );
                                 }
 
                                 std::sort ( pairs.begin() + 1, pairs.end() );
 
                                 for ( size_t i = 0 ; i < voxelCount.size() ; ++i ) {
                                         pairs[i].first = pairs[i].second;
-                                        pairs[i].second = i;
+                                        pairs[i].second = static_cast<id_t>(i);
                                 }
 
                                 std::sort ( pairs.begin() + 1, pairs.end() );

@@ -11,16 +11,16 @@
 #include <chrono>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <stdlib.h>
+#pragma comment(lib, "IPHLPAPI.lib")
+
 #include <windows.h>
 #include <process.h>
 #include <intrin.h>
 #include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
-
-#include <winsock2.h>
-#include <iphlpapi.h>
-#include <stdlib.h>
-#pragma comment(lib, "IPHLPAPI.lib")
 
 #elif defined (__CYGWIN__)
 #include <unistd.h>
@@ -47,7 +47,7 @@
 #include <net/if.h>
 #else
 
-#endif // defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+#endif
 
 namespace mi4
 {
@@ -141,11 +141,30 @@ namespace mi4
                 static std::vector<MacAddress> getMacAddresses ( void )
                 {
                         std::vector<MacAddress> addresses;
-                        // todo : add code here
+                        ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+                        PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*) malloc (ulOutBufLen);
+                        if (pAdapterInfo == NULL) return addresses;
+                        if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW) {
+                                free(pAdapterInfo);
+                                pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBufLen);
+                                if (pAdapterInfo == NULL) return addresses;
+                        }
+                      
+                        if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == NO_ERROR) {
+                                PIP_ADAPTER_INFO pAdapter = pAdapterInfo;
+                                while (pAdapter) {
+                                        switch (pAdapter->Type) {
+                                        case MIB_IF_TYPE_ETHERNET:
+                                                unsigned char* ad = pAdapter->Address;
+                                                addresses.push_back(MacAddress(std::to_string(pAdapter->ComboIndex), ad));
+                                                break;
+                                        }
+                                        pAdapter = pAdapter->Next;
+                                }
+                        }
+                        if (pAdapterInfo != NULL) free(pAdapterInfo);
                 	return addresses;
                 }
-
-
         };
         using SystemInfoOsSpecific = SystemInfoWindows;
 #elif defined (__CYGWIN__)

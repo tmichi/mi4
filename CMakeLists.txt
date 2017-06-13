@@ -28,6 +28,9 @@ endif()
 find_package(Eigen3)
 if (Eigen3_FOUND)
 	include_directories (${EIGEN3_INCLUDE_DIRS})
+else ()
+	include_directories ("c:/usr/local/include")
+
 endif (Eigen3_FOUND)
 
 
@@ -43,4 +46,4 @@ endif (WIN32)
 ADD_SUBDIRECTORY(include/mi4)
 ADD_SUBDIRECTORY(examples)
 ADD_SUBDIRECTORY(tests)
-ADD_SUBDIRECTORY(dev)
+#ADD_SUBDIRECTORY(dev)

@@ -56,8 +56,9 @@ namespace mi4
                         auto comp_fn = [] ( const value_type & a, const value_type & b ) {
                                 return std::get<0> ( a ) < std::get<0> ( b );
                         };
+
                         const auto& values = this->_values;
-                        const value_type v = std::make_tuple ( value, 0, 0, 0 );
+                        const value_type v = std::make_tuple ( value, 0.0f, 0.0f, 0.0f );
                         const auto upper = std::upper_bound ( values.cbegin(), values.cend(), v, comp_fn );
 
                         if ( upper == values.begin() ) {
@@ -75,13 +76,13 @@ namespace mi4
                         else {
                                 const auto lower = upper - 1 ;
                                 const float t = ( value - std::get<0> ( *lower ) ) / ( std::get<0> ( *upper ) - std::get<0> ( *lower ) );
-                                r = ( 1.0 - t ) * std::get<1> ( *lower ) + t * std::get<1> ( *upper );
-                                g = ( 1.0 - t ) * std::get<2> ( *lower ) + t * std::get<2> ( *upper );
-                                b = ( 1.0 - t ) * std::get<3> ( *lower ) + t * std::get<3> ( *upper );
+                                r = ( 1.0f - t ) * std::get<1> ( *lower ) + t * std::get<1> ( *upper );
+                                g = ( 1.0f - t ) * std::get<2> ( *lower ) + t * std::get<2> ( *upper );
+                                b = ( 1.0f - t ) * std::get<3> ( *lower ) + t * std::get<3> ( *upper );
                                 return;
                         }
                 }
-                void convert ( const double value, int& r,  int& g, int& b )
+                void convert ( const float value, int& r,  int& g, int& b )
                 {
                         float r0, g0, b0;
                         this->convert ( value, r0, g0, b0 );
@@ -91,7 +92,7 @@ namespace mi4
                         return;
                 }
 
-                void convert ( const double value, unsigned char& r,  unsigned char& g, unsigned char& b )
+                void convert ( const float value, unsigned char& r,  unsigned char& g, unsigned char& b )
                 {
                         int r0, g0, b0;
                         this->convert ( value, r0, g0, b0 );
