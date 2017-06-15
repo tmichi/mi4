@@ -11,69 +11,69 @@
 
 namespace mi4
 {
-        class OffScreenRenderer
-        {
-        private:
-                OffScreenRenderer&  operator =  ( const OffScreenRenderer& ) = delete;
-                OffScreenRenderer&  operator =  ( OffScreenRenderer&& ) = delete;
-                OffScreenRenderer ( const OffScreenRenderer& ) = delete;
-                OffScreenRenderer ( OffScreenRenderer&& ) = delete;
-        private:
-                const int _width;
-                const int _height;
-                GLFWwindow* _window;
-        public:
-                explicit OffScreenRenderer ( const int width = 128, const int height = 128 ) : _width ( width ), _height ( height ), _window ( NULL )
-                {
-                        if ( !::glfwInit() ) {
-                                std::cerr << "glfwInit() failed." << std::endl;
-                                return;
-                        }
+class OffScreenRenderer
+{
+private:
+    OffScreenRenderer&  operator =  ( const OffScreenRenderer& ) = delete;
+    OffScreenRenderer&  operator =  ( OffScreenRenderer&& ) = delete;
+    OffScreenRenderer ( const OffScreenRenderer& ) = delete;
+    OffScreenRenderer ( OffScreenRenderer&& ) = delete;
+private:
+    const int _width;
+    const int _height;
+    GLFWwindow* _window;
+public:
+    explicit OffScreenRenderer ( const int width = 128, const int height = 128 ) : _width ( width ), _height ( height ), _window ( NULL )
+    {
+        if ( !::glfwInit() ) {
+            std::cerr << "glfwInit() failed." << std::endl;
+            return;
+        }
 
-                        ::glfwWindowHint ( GLFW_VISIBLE, 0 );
-                        this->_window = ::glfwCreateWindow ( width, height, "tmp", NULL, NULL );
+        ::glfwWindowHint ( GLFW_VISIBLE, 0 );
+        this->_window = ::glfwCreateWindow ( width, height, "tmp", NULL, NULL );
 
-                        if ( !this->_window ) {
-                                std::cerr << "glfwCreateWindow() failed." << std::endl;
-                                return;
-                        }
+        if ( !this->_window ) {
+            std::cerr << "glfwCreateWindow() failed." << std::endl;
+            return;
+        }
 
-                        this->makeCurrent();
-                        return;
-                }
+        this->makeCurrent();
+        return;
+    }
 
-                ~OffScreenRenderer ( void )
-                {
-                        ::glfwTerminate();
-                        return;
-                }
+    ~OffScreenRenderer ( void )
+    {
+        ::glfwTerminate();
+        return;
+    }
 
-                int width ( void ) const
-                {
-                        return this->_width;
-                }
+    int width ( void ) const
+    {
+        return this->_width;
+    }
 
-                int height ( void ) const
-                {
-                        return this->_height;
-                }
+    int height ( void ) const
+    {
+        return this->_height;
+    }
 
-                GLFWwindow* window ( void )
-                {
-                        return this->_window;
-                }
+    GLFWwindow* window ( void )
+    {
+        return this->_window;
+    }
 
-                void swapBuffers ( void )
-                {
-                        ::glfwSwapBuffers ( this->window() );
-                        return;
-                }
+    void swapBuffers ( void )
+    {
+        ::glfwSwapBuffers ( this->window() );
+        return;
+    }
 
-                void makeCurrent ( void )
-                {
-                        ::glfwMakeContextCurrent ( this->window() );
-                        return;
-                }
-        };
+    void makeCurrent ( void )
+    {
+        ::glfwMakeContextCurrent ( this->window() );
+        return;
+    }
+};
 }
 #endif
