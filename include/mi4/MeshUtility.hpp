@@ -6,19 +6,8 @@
 #define MI_MESH_UTILITY_HPP 1
 #include <iostream>
 #include <string>
-
 #include "Mesh.hpp"
-/*
-#include "MeshExporterStl.hpp"
-#include "MeshExporterPly.hpp"
-#include "MeshExporterOff.hpp"
-#include "MeshExporterObj.hpp"
-#include "MeshImporterStl.hpp"
-#include "MeshImporterObj.hpp"
-#include "MeshStitcher.hpp"
-*/
-//#include "MeshConnectedComponentExtractor.hpp"
-//#include "FileNameConverter.hpp"
+#include "Kdtree.hpp"
 
 namespace mi4
 {
@@ -80,70 +69,42 @@ namespace mi4
 			fout.close();
                         return true;
 		}
-
-                /**
-                 * @brief Open mesh data.
-                 * @param [in] mesh Mesh.
-                 * @param [in] filename File name.
-                 * @retval true Success.
-                 * @retval false Failure.
-                 */
-		/*   static bool open ( Mesh& mesh, const std::string& filename, const bool isBinary = true ) {
-                        std::string extension = FileNameConverter( filename ).getExtension();
-                        if ( extension.compare( "stl" ) == 0 ) {
-                                return MeshImporterStl( mesh ).read( filename );
-                        } else if ( extension.compare( "obj" ) == 0 ) {
-                                return MeshImporterObj( mesh ).read( filename );
-                        } else {
-                                std::cerr<<"unsupported format "<<extension<<std::endl;
-                                return false;
-                        }
-			}*/
-                /**
-                 * @brief Save mesh data.
-                 * @param [in] mesh Mesh.
-                 * @param [in] filename File name.
-                 * @retval true Success.
-                 * @retval false Failure.
-                 */
-/*
-                static bool save ( const Mesh& mesh, const std::string& filename, const bool isBinary = true ) {
-                        std::string extension = FileNameConverter( filename ).getExtension();
-                        if ( extension.compare( "stl" ) == 0 ) {
-                                return MeshExporterStl( mesh ).write( filename );
-                        } else if ( extension.compare( "ply" ) == 0 ) {
-                                return MeshExporterPly( mesh , isBinary ).write( filename );
-                        } else if ( extension.compare( "obj" ) == 0 ) {
-                                return MeshExporterObj( mesh ).write( filename );
-                        } else if ( extension.compare( "off" ) == 0 ) {
-                                return MeshExporterOff( mesh ).write( filename );
-                        } else {
-                                std::cerr<<"unsupported format "<<extension<<std::endl;
-                                return false;
-                        }
-                }
-*/
 		/**
 		 * @brief Stitch a triangle soup.
 		 * @param [in, out] mesh Mesh object.
 		 * @param [in] eps Maximum distance to connect vertices.
 		 */
-		/*              static bool stitch ( Mesh& mesh, const double eps = 1.0e-10 ) {
-                        Mesh mesh0;
-                        MeshStitcher stitcher( mesh, eps );
-                        if ( !stitcher.stitch( mesh0 ) ) return false;
-			// Copying from mesh0 to mesh.
-                        mesh.init();
-                        for ( int i = 0 ; i < mesh0.getNumVertices(); ++i ) {
-                                mi4::Vector3d p = mesh0.getPosition( i );
-                                mesh.addPoint( p );
-                        }
-                        for ( int i = 0 ; i < mesh0.getNumFaces(); ++i ) {
-                                mesh.addFace( mesh0.getFaceIndices( i ) );
-                        }
-                        return true;
+              static Mesh stitch ( const Mesh& mesh, const double eps = 1.0e-10 ) {
+                        Mesh resultMesh;
+			
+			typedef IndexedVector<Vector3d> VertexType;
+			std::vector<int> newId( mesh.getNumVertices(), -1 ) ;
+			std::vector< VertexType > points;
+                        for( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
+				points.push_back( VertexType( mesh.getPosition( i ), i ) ) ;
+			}
+			Kdtree<VertexType> kdtree( points );
+                        for( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
+                                if ( newId[i] != -1 ) continue;
+				std::list<VertexType> result;
+				kdtree.find( VertexType( mesh.getPosition( i ), 0 ), eps, result );
+				const int id = resultMesh.addPoint( mesh.getPosition( i ) ) ;
+				for( auto &i : result ) {
+					newId[ i.id() ] = id;
+				}
+			}
+			
+                        for ( int i = 0 ; i < mesh.getNumFaces() ; ++i ) {
+				std::vector<int> index = mesh.getFaceIndices ( i ) ;
+				for ( size_t j = 0 ; j < index.size() ; ++j ) {
+					const int id = index[j];
+					index[j] = newId [ id ];
+				}
+                                resultMesh.addFace( index );
+			}
+                        return resultMesh;
                 }
-		*/
+
                 /**
                  * @brief decompose mesh into connected components.
                  * @param [in] mesh Mesh object.

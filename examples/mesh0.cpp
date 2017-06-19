@@ -13,6 +13,8 @@ int main ( int argc, char** argv )
         creator.fillSphere ( mi4::Point3i ( 120, 120, 120 ), 50 );
 	mi4::Mesh mesh = mi4::VolumeDataPolygonizer<char>(binary).polygonize( 1 );
 	mi4::MeshUtility::savePly(mesh, "out.ply");
+	mi4::Mesh mesh1 = mi4::MeshUtility::stitch(mesh);
+	mi4::MeshUtility::savePly(mesh1, "outs.ply");
 	std::cerr<<mesh.getNumVertices()<<std::endl;
 
         return 0;

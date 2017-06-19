@@ -134,9 +134,9 @@ namespace mi4
                         return this->polygonize( iso, maskdata);
                 }
 
-
                 Mesh polygonize( Data<float>& isovalue, Data<char>& mask) {
 			Mesh mesh;
+			// @todo make parallel (170619)
 			const auto& info = this->_data.getInfo();
                         for( const auto& p : mi4::Range(info.getMin(),  info.getMax() - mi4::Point3i(1, 1, 1) ) ) {
 				std::vector<double> iso;
@@ -155,15 +155,8 @@ namespace mi4
 				this->polygonize_cell( cell, iso, mesh );
                         }
                         return mesh;
-                }
+		}
         private:
-                /**
-		 * @brief Polygonize a cell.
-		 * @param [in] cell Cell.
-		 * @param [in] isovalue Iso value ot the volume data.
-		 * @param [out] mesh Mesh object.
-		 * @return The number of triangles in a cell .
-		 */
                 int polygonize_cell( std::vector< std::pair<Point3d, double> >& cell, const std::vector<double>& isovalue, Mesh& mesh ) {
                         unsigned char tableid = 0x00;
                         for( int i = 0 ; i < 8 ; ++i ) {
@@ -199,8 +192,8 @@ namespace mi4
                                 std::vector<int> idx( 3, 0 );
                                 // check invert
                                 idx[0] = mesh.addPoint( ep[ mc_idxtable[i  ] ] );
-                                idx[1] = mesh.addPoint( ep[ mc_idxtable[i+2] ] );
-                                idx[2] = mesh.addPoint( ep[ mc_idxtable[i+1] ] );
+                                idx[1] = mesh.addPoint( ep[ mc_idxtable[i+1] ] );
+                                idx[2] = mesh.addPoint( ep[ mc_idxtable[i+2] ] );
                                 mesh.addFace( idx );
                         }
                         return numTriangles;
