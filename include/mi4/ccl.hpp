@@ -1,33 +1,33 @@
-#ifndef MI_CONNECTED_COMPONENT_LABELLER_HPP
-#define MI_CONNECTED_COMPONENT_LABELLER_HPP 1
+#ifndef MI_CCL_HPP
+#define MI_CCL_HPP 1
 #include <vector>
 #include <cstdlib>
 #include <mi4/VolumeData.hpp>
 namespace mi4
 {
-class ConnectedComponentLabeller
-{
-private:
-    typedef int id_t;
-    class RunLengthCodeBinary
-    {
-    private:
-        mi4::Vector3s _start;
-        short int _length;
-        id_t _parent; // -1 : root, others: id
-    public:
-        explicit RunLengthCodeBinary ( const mi4::Vector3s& start, const short int length ): _start ( start ), _length ( length ), _parent ( -1 )
-        {
-            return;
-        }
-
-        RunLengthCodeBinary ( const RunLengthCodeBinary& that ) = default;
-        RunLengthCodeBinary ( RunLengthCodeBinary&& that ) = default;
-        RunLengthCodeBinary& operator = ( const RunLengthCodeBinary& that ) = default;
-        RunLengthCodeBinary& operator = ( RunLengthCodeBinary&& that ) = default;
-        ~RunLengthCodeBinary ( void ) = default;
-
-        void setParent ( const id_t parent )
+	class ccl
+	{
+	private:
+		typedef int id_t;
+		class RunLengthCodeBinary
+		{
+		private:
+			mi4::Vector3s _start;
+			short int _length;
+			id_t _parent; // -1 : root, others: id
+		public:
+			explicit RunLengthCodeBinary ( const mi4::Vector3s& start, const short int length ): _start ( start ), _length ( length ), _parent ( -1 )
+				{
+					return;
+				}
+			
+			RunLengthCodeBinary ( const RunLengthCodeBinary& that ) = default;
+			RunLengthCodeBinary ( RunLengthCodeBinary&& that ) = default;
+			RunLengthCodeBinary& operator = ( const RunLengthCodeBinary& that ) = default;
+			RunLengthCodeBinary& operator = ( RunLengthCodeBinary&& that ) = default;
+			~RunLengthCodeBinary ( void ) = default;
+			
+			void setParent ( const id_t parent )
         {
             this->_parent = parent;
             return;
@@ -153,11 +153,12 @@ private:
     std::vector<id_t> _labels;
     int _num_label;
 public:
-    ConnectedComponentLabeller ( const mi4::VolumeData<char>& data ) : _size ( data.getSize() ), _rlo ( RunLengthObject<char> ( data ) )
+    ccl ( const mi4::VolumeData<char>& data ) : _size ( data.getSize() ), _rlo ( RunLengthObject<char> ( data ) )
     {
-        return;
+	    return;
     }
-    int label ( const bool isSorted = false, const bool joinXyz = true )
+		~ccl( void ) = default;
+    ccl& label ( const bool isSorted = false, const bool joinXyz = true )
     {
         const auto& size = this->_size;
         auto& codes = this->_rlo.codes();
@@ -226,48 +227,47 @@ public:
 
         }
 
-        return count - 1 ;
+        return *this;
 
     }
-    template <typename T> bool getData ( VolumeData<T>& labelData )
+    template <typename T> 
+    VolumeData<T> getData ( void )
     {
-        auto& codes = this->_rlo.codes();
-
-        for ( size_t i = 0 ; i < codes.size() ; ++i ) {
-            this->set_label ( labelData, codes[i], this->_labels[i] );
-        }
-
-        return true;
-    }
-    template <typename T> bool getNthComponent ( VolumeData<T>& labelData, const id_t n = 1 )
-    {
-        auto& codes = this->_rlo.codes();
-
-        for ( size_t i = 0 ; i < codes.size() ; ++i ) {
-            if ( n != this->_labels[i] ) {
-                continue;
-            }
-
-            this->set_label ( labelData, codes[i], 1 );
-        }
-
-        return true;
-
+	    VolumeData<T> result ( mi4::VolumeInfo(this->_size));
+	    auto& codes = this->_rlo.codes();
+	    
+	    for ( size_t i = 0 ; i < codes.size() ; ++i ) {
+		    this->set_label ( result, codes[i], this->_labels[i] );
+	    }
+	    
+	    return result;
     }
 
-    template <typename T>
-    bool getNotNthComponents ( VolumeData<T>& labelData, const id_t n = 1 )
+    VolumeData<char> getNthComponent (const id_t n = 1 )
     {
-        auto& codes = this->_rlo.codes();
+	    VolumeData<char> result ( mi4::VolumeInfo(this->_size));
+	    auto& codes = this->_rlo.codes();
+	    
+	    for ( size_t i = 0 ; i < codes.size() ; ++i ) {
+		    if ( n != this->_labels[i] ) {
+			    continue;
+		    }
+		    this->set_label ( result, codes[i], 1 );
+	    }
+	    return result;
+    }
 
-        for ( size_t i = 0 ; i < codes.size() ; ++i ) {
-            if ( n == this->_labels[i] ) {
-                continue;
-            }
-            this->set_label ( labelData, codes[i], 1 );
-        }
-
-        return true;
+    VolumeData<char> getNotNthComponents ( const id_t n = 1 )
+    {
+	    VolumeData<char>  result ( mi4::VolumeInfo(this->_size));
+	    auto& codes = this->_rlo.codes();
+	    for ( size_t i = 0 ; i < codes.size() ; ++i ) {
+		    if ( n == this->_labels[i] ) {
+			    continue;
+		    }
+		    this->set_label ( result, codes[i], 1 );
+	    }
+	    return result;
     }
 private:
     template<typename T>

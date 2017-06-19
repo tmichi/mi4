@@ -1,6 +1,7 @@
 SET ( INCLUDE_FILES
       Camera.hpp
       ColorMapper.hpp
+      ConnectedComponentLabeller.hpp
       FrameBufferObject.hpp
       glconf.hpp
       Kdtree.hpp
@@ -23,6 +24,6 @@ SET ( INCLUDE_FILES
       VolumeDataUtility.hpp
       Xml.hpp
     )
-INSTALL ( FILES $ {INCLUDE_FILES}
+INSTALL ( FILES ${INCLUDE_FILES}
           DESTINATION include/mi4
           PERMISSIONS OWNER_READ GROUP_READ WORLD_READ )

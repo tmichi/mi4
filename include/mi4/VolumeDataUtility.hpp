@@ -1,275 +1,469 @@
 #ifndef MI4_VOLUME_DATA_UTILITY_HPP
 #define MI4_VOLUME_DATA_UTILITY_HPP 1
-#include <mi4/VolumeData.hpp>
+#include "ParallelFor.hpp"
+#include "VolumeData.hpp"
+#include "PriorityQueue.hpp"
+//#include "ConnectedComponentLabeller.hpp"
+#include <thread>
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <cmath>
+#include <cstdlib>
+#include <vector>
 
 namespace mi4
 {
-class VolumeDataUtility
-{
-private:
+                void dist_main ( const int z,  const VolumeData<char>& binary, const VolumeData<short>& tmpz, VolumeData<mi4::Vector3s>& result )
+                {
+                        const auto& info = binary.getInfo();
+                        const auto& size = info.getSize();
 
-public:
-    static bool& isDebugMode ( void )
-    {
-        static bool isDebugMode = false;
-        return isDebugMode;
-    }
+                        for ( int y = 0 ; y < size.y() ; ++y ) {
+                                std::vector<short> cloy ( size.x(), std::numeric_limits<short>::min() ) ;
 
-    static void setDebugModeOn ( void )
-    {
-        VolumeDataUtility::isDebugMode() = true;
-        return;
-    }
+                                for ( int x = 0 ; x < size.x() ; ++x ) {
+                                        if ( binary.get ( x, y, z ) == 0 ) {
+                                                cloy[x] = y;
+                                        } else {
+                                                float mind = std::numeric_limits<float>::max();
 
+                                                for ( int dy = 0 ; dy < size.y() ; ++dy ) {
+                                                        auto clz = tmpz.get ( mi4::Point3i ( x, dy, z ) );
 
-    template< typename T>
-    static bool open ( VolumeData<T>& data, const std::string& filename, const int headerSize = 0 )
-    {
-        std::ifstream fin ( filename.c_str(), std::ios::binary );
+                                                        if ( clz <  0 ) {
+                                                                continue;        // when closest site does not exist.
+                                                        }
 
-        if ( !fin ) {
-            std::cerr << "open failed." << std::endl;
-            return false;
-        }
+                                                        Vector3s v ( 0, dy - y, clz - z ); // (0, dy, dz)
+                                                        float d = info.getLength ( v );	 //dy * dy + dz * dz
 
-        fin.seekg ( headerSize );
+                                                        if ( d < mind ) {
+                                                                mind = d;
+                                                                cloy[x] = dy;
+                                                        }
+                                                }
+                                        }
+                                }
 
-        if ( !data.read ( fin ) ) {
-            std::cerr << "Error occured." << std::endl;
-            return false;
-        }
+                                for ( int x = 0 ; x < size.x() ; ++x ) {
+                                        short clox = std::numeric_limits<short>::min();
 
-        return true;
-    }
-    template< typename T>
-    static bool save ( VolumeData<T>& data, const std::string& filename )
-    {
-        std::ofstream fout ( filename.c_str(), std::ios::binary );
+                                        if ( binary.get ( x, y, z ) == 0 ) {
+                                                clox = x;
+                                        } else {
+                                                float mind = std::numeric_limits<float>::max();
 
-        if ( !fout ) {
-            std::cerr << "open failed." << std::endl;
-            return false;
-        }
+                                                for ( int dx = 0 ; dx < size.x() ; ++dx ) {
+                                                        if ( cloy[dx] < 0 ) {
+                                                                continue;
+                                                        }
 
-        if ( !data.write ( fout ) ) {
-            std::cerr << "Error occured." << std::endl;
-            return false;
-        }
+                                                        Vector3s v ( dx - x, cloy[dx] - y, tmpz.get ( mi4::Point3i ( dx, cloy[dx], z ) ) - z );
+                                                        float d = info.getLength ( v );
 
-        return true;
-    }
+                                                        if ( d < mind ) {
+                                                                mind = d;
+                                                                clox = dx;
+                                                        }
+                                                }
+                                        }
 
-    template< typename T>
-    static bool debug_save ( VolumeData<T>& data, const std::string& filename )
-    {
-        if ( !VolumeDataUtility::isDebugMode() ) {
-            return true;        // do nothing.
-        }
+                                        const short cx = clox;
+                                        const short cy = cloy[cx];
+                                        const short cz = tmpz.get ( mi4::Point3i ( cx, cy, z ) );
+                                        result.set ( mi4::Point3i ( x, y, z ), Vector3s ( cx - x, cy - y, cz - z ) );
+                                }
+                        }
 
-        VolumeDataUtility::save ( data, filename );
-        std::cerr << "[debug] the result was saved to " << filename << std::endl;
-        return true;
-    }
-
-    template <typename T>
-    static VolumeData<T> binarize ( const VolumeData<T>& data, const T threshold )
-    {
-        VolumeData<T> result ( data.getInfo() );
-
-        for ( const auto& p : Range ( data.getInfo() ) ) {
-            const T value = ( data.get ( p ) <  threshold ) ? 0 : 1;
-            result.set ( p, value );
-        }
-
-        return std::move ( result );
-    }
-
-    static VolumeData<char> extractBoundaryVoxels ( const VolumeData<char>& data )
-    {
-        VolumeData <char> result ( data.getInfo() );
-        Range nbr ( mi4::Point3i ( -1, -1, -1 ), mi4::Point3i ( 1, 1, 1 ) );
-
-        for ( const auto p : Range ( data.getInfo() ) ) {
-            if ( data.get ( p ) == 0 ) {
-                continue;
-            }
-
-            for ( const auto& d : nbr ) {
-                if ( result.get ( p ) != 0 ) {
-                    break;
+                        return;
                 }
 
-                if ( d == mi4::Point3i ( 0, 0, 0 ) ) {
-                    continue;
+                void dist_init ( const int x,  const VolumeData<char>& binary, VolumeData<short>& tmpz )
+                {
+                        const auto& info = binary.getInfo();
+                        const auto& size = info.getSize();
+
+                        for ( int y = 0 ; y < size.y() ; ++y ) {
+                                int cz = std::numeric_limits<short>::min();
+
+                                for ( int z = 0 ; z < size.z() ; ++z ) {
+                                        const mi4::Point3i p ( x, y, z );
+
+                                        if ( binary.get ( p ) == 0 ) {
+                                                cz = z;
+                                        }
+
+                                        tmpz.set ( p, cz );
+                                }
+
+                                cz = std::numeric_limits<short>::min();
+
+                                for ( int z = size.z() - 1 ; z >= 0 ; --z ) {
+                                        const mi4::Point3i p ( x, y, z );
+
+                                        if ( binary.get ( p ) == 0 ) {
+                                                cz = z;
+                                        } else {
+                                                if ( std::fabs ( cz - z ) > std::fabs ( z - tmpz.get ( p ) ) ) {
+                                                        cz = tmpz.get ( p );
+                                                }
+                                        }
+
+                                        tmpz.set ( p, cz );
+                                }
+                        }
                 }
 
-                const auto np = p + d;
-
-                if ( !data.getInfo().isValid ( np ) ) {
-                    continue;
-                }
-
-                if ( data.get ( np ) == 0 ) {
-                    result.set ( p, 1 );
-                }
-            }
-        }
-
-        //return std::move (result);
-        return result;
-    }
-
-    template <typename T, typename S>
-    static VolumeData<S> cast ( const VolumeData<T>& data )
-    {
-        VolumeData<S> result ( data.getInfo() );
-
-        for ( const auto& p : Range ( data.getInfo() ) ) {
-            result.set ( p, static_cast<S> ( data.get ( p ) ) );
-        }
-
-        return std::move ( result );
-    }
-
-    template <typename T>
-    static VolumeData<T> clip ( const VolumeData<T>& data, const Point3i& bmin, const Point3i& bmax )
-    {
-        VolumeData<T> result ( VolumeInfo ( bmax - bmin + Point3i ( 1, 1, 1 ) ) );
-
-        for ( const auto& p : Range ( result.getInfo() ) ) {
-            result.set ( p, data.get ( bmin + p ) );
-        }
-
-        return std::move ( result );
-    }
-
-
-    static  bool diff ( const VolumeData<char>& srcData, const VolumeData<char>& trgData, VolumeData<char>& outData )
-    {
-        const auto& info =  srcData.getInfo();
-
-        if ( !outData.isReadable() ) {
-            outData.init ( info );
-        }
-
-        for ( const auto& p : mi4::Range(info) ) {
-            char value = 0;
-
-            if ( srcData.get ( p ) == 1  && trgData.get ( p ) == 0 ) {
-                value = 1;
-            }
-
-            outData.set ( p, value );
-        }
-
-        return true;
-    }
-
-    template< typename T>
-    static bool negate_binary ( const VolumeData<T>& inData, VolumeData<T>& outData )
-    {
-        // data must be binary (0 or 1)
-        auto& info = inData.getInfo();
-
-        if ( !outData.isReadable() ) {
-            outData.init ( info );
-        }
-
-        for ( const auto& p : mi4::Range(info) ) {
-            outData.set ( p, 1 - inData.get ( p ) ) ;
-        }
-
-        return true;
-    }
-
-    class morphology
-    {
-    private:
-        const VolumeData<char>& _inData;
-        VolumeData<char>& _outData;
-        const double _radius;
-        char _bg;
-        char _fg;
-
-    public:
-        morphology ( const VolumeData<char>& inData, VolumeData<char>& outData, const double r, const bool isDilate = true ) : _inData ( inData ), _outData ( outData ), _radius ( r ), _bg ( 0 ), _fg ( 1 )
+        class VolumeDataUtility
         {
-            if ( !isDilate ) {
-                this->_bg = 1;
-                this->_fg = 0;
-            }
+        private:
 
-            return;
-        }
-
-        void operator () ( const Point3i& p )
-        {
-            this->_outData.set ( p, this->get_value ( p ) ) ;
-            return;
-        }
-    private:
-        inline char get_value ( const Point3i& p ) const
-        {
-            const auto& bg = this->_bg;
-            const auto& fg = this->_fg;
-
-            if ( this->_inData.get ( p ) == fg ) {
-                return fg;
-            }
-
-            const auto& info = this->_inData.getInfo();
-            const auto& r = this->_radius;
-            const auto rp = info.convertVectorCeil ( mi4::Vector3d ( r, r, r ) );
-
-            for ( const auto& d : Range ( -rp, rp ) ) {
-                if ( r * r <  info.getLengthSquared ( d ) ) {
-                    continue;
+        public:
+                static bool& isDebugMode ( void )
+                {
+                        static bool isDebugMode = false;
+                        return isDebugMode;
                 }
 
-                const auto np = p + d;
-
-                if ( !info.isValid ( np ) ) {
-                    continue;
+                static void setDebugModeOn ( void )
+                {
+                        VolumeDataUtility::isDebugMode() = true;
+                        return;
                 }
 
-                if ( this->_inData.get ( np ) == fg ) {
-                    return fg;
+
+                template< typename T>
+                static bool open ( VolumeData<T>& data, const std::string& filename, const int headerSize = 0 )
+                {
+                        std::ifstream fin ( filename.c_str(), std::ios::binary );
+
+                        if ( !fin ) {
+                                std::cerr << "open failed." << std::endl;
+                                return false;
+                        }
+
+                        fin.seekg ( headerSize );
+
+                        if ( !data.read ( fin ) ) {
+                                std::cerr << "Error occured." << std::endl;
+                                return false;
+                        }
+
+                        return true;
                 }
-            }
+                template< typename T>
+                static bool save ( VolumeData<T>& data, const std::string& filename )
+                {
+                        std::ofstream fout ( filename.c_str(), std::ios::binary );
 
-            return bg;
-        }
-    };
+                        if ( !fout ) {
+                                std::cerr << "open failed." << std::endl;
+                                return false;
+                        }
 
-    template<typename T>
-    static VolumeData<T> erode ( const VolumeData<T>& inData, const double r )
-    {
-        const auto& info = inData.getInfo();
-        VolumeData<T> result ( info );
-        Range range ( info );
-        //mi::parallel_for_each ( range.begin(), range.end(), mi::erode ( inData, outData, r)   );
-        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, false ) );
-        return std::move ( result );
-    }
+                        if ( !data.write ( fout ) ) {
+                                std::cerr << "Error occured." << std::endl;
+                                return false;
+                        }
 
-    template<typename T>
-    static VolumeData<T> dilate ( const VolumeData<T>& inData, const double r )
-    {
-        const auto& info = inData.getInfo();
-        VolumeData<T> result ( info );
-        Range range ( info );
-        //mi::parallel_for_each ( range.begin(), range.end(), mi::erode ( inData, outData, r)   );
-        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ) );
-        return std::move ( result );
-    }
+                        return true;
+                }
+
+                template< typename T>
+                static bool debug_save ( VolumeData<T>& data, const std::string& filename )
+                {
+                        if ( !VolumeDataUtility::isDebugMode() ) {
+                                return true;        // do nothing.
+                        }
+
+                        VolumeDataUtility::save ( data, filename );
+                        std::cerr << "[debug] the result was saved to " << filename << std::endl;
+                        return true;
+                }
+
+                template <typename T, typename S>
+                static VolumeData<S> binarize ( const VolumeData<T>& data, const T threshold )
+                {
+                        VolumeData<S> result ( data.getInfo() );
+
+                        for ( const auto& p : Range ( data.getInfo() ) ) {
+                                const S value = ( data.get ( p ) <  threshold ) ? 0 : 1;
+                                result.set ( p, value );
+                        }
+
+                        return std::move ( result );
+                }
+
+                static VolumeData<char> extractBoundaryVoxels ( const VolumeData<char>& data )
+                {
+                        VolumeData <char> result ( data.getInfo() );
+                        Range nbr ( mi4::Point3i ( -1, -1, -1 ), mi4::Point3i ( 1, 1, 1 ) );
+
+                        for ( const auto p : Range ( data.getInfo() ) ) {
+                                if ( data.get ( p ) == 0 ) {
+                                        continue;
+                                }
+
+                                for ( const auto& d : nbr ) {
+                                        if ( result.get ( p ) != 0 ) {
+                                                break;
+                                        }
+
+                                        if ( d == mi4::Point3i ( 0, 0, 0 ) ) {
+                                                continue;
+                                        }
+
+                                        const auto np = p + d;
+
+                                        if ( !data.getInfo().isValid ( np ) ) {
+                                                continue;
+                                        }
+
+                                        if ( data.get ( np ) == 0 ) {
+                                                result.set ( p, 1 );
+                                        }
+                                }
+                        }
+
+                        //return std::move (result);
+                        return result;
+                }
+
+                template <typename T, typename S>
+                static VolumeData<S> cast ( const VolumeData<T>& data )
+                {
+                        VolumeData<S> result ( data.getInfo() );
+                        for ( const auto& p : Range ( data.getInfo() ) ) {
+                                result.set ( p, static_cast<S> ( data.get ( p ) ) );
+                        }
+
+                        return std::move ( result );
+                }
+
+                template <typename T>
+                static VolumeData<T> clip ( const VolumeData<T>& data, const Point3i& bmin, const Point3i& bmax )
+                {
+                        VolumeData<T> result ( VolumeInfo ( bmax - bmin + Point3i ( 1, 1, 1 ) ) );
+
+                        for ( const auto& p : Range ( result.getInfo() ) ) {
+                                result.set ( p, data.get ( bmin + p ) );
+                        }
+
+                        return std::move ( result );
+                }
+		
+
+                static 
+		VolumeData<char> diff ( const VolumeData<char>& srcData, const VolumeData<char>& trgData)
+                {
+                        const auto& info =  srcData.getInfo();
+			VolumeData<char> outData(info);
+                        for ( const auto& p : mi4::Range ( info ) ) {
+                                char value = 0;
+                                if ( srcData.get ( p ) == 1  && trgData.get ( p ) == 0 ) {
+                                        value = 1;
+                                }
+                                outData.set ( p, value );
+                        }
+                        return outData;
+                }
+
+                template< typename T>
+                static VolumeData<T> negate_binary ( const VolumeData<T>& inData)
+                {
+                        const auto& info = inData.getInfo();
+			VolumeData<T> outData(info);
+                        for ( const auto& p : mi4::Range ( info ) ) {
+                                outData.set ( p, 1 - inData.get ( p ) ) ;
+                        }
+                        return outData;
+                }
+
+                class morphology
+                {
+                private:
+                        const VolumeData<char>& _inData;
+                        VolumeData<char>& _outData;
+                        const double _radius;
+                        char _bg;
+                        char _fg;
+
+                public:
+                        morphology ( const VolumeData<char>& inData, VolumeData<char>& outData, const double r, const bool isDilate = true ) : _inData ( inData ), _outData ( outData ), _radius ( r ), _bg ( 0 ), _fg ( 1 )
+                        {
+                                if ( !isDilate ) {
+                                        this->_bg = 1;
+                                        this->_fg = 0;
+                                }
+
+                                return;
+                        }
+
+                        void operator () ( const Point3i& p )
+                        {
+                                this->_outData.set ( p, this->get_value ( p ) ) ;
+                                return;
+                        }
+                private:
+                        inline char get_value ( const Point3i& p ) const
+                        {
+                                const auto& bg = this->_bg;
+                                const auto& fg = this->_fg;
+
+                                if ( this->_inData.get ( p ) == fg ) {
+                                        return fg;
+                                }
+
+                                const auto& info = this->_inData.getInfo();
+                                const auto& r = this->_radius;
+                                const auto rp = info.convertVectorCeil ( mi4::Vector3d ( r, r, r ) );
+
+                                for ( const auto& d : Range ( -rp, rp ) ) {
+                                        if ( r * r <  info.getLengthSquared ( d ) ) {
+                                                continue;
+                                        }
+
+                                        const auto np = p + d;
+
+                                        if ( !info.isValid ( np ) ) {
+                                                continue;
+                                        }
+
+                                        if ( this->_inData.get ( np ) == fg ) {
+                                                return fg;
+                                        }
+                                }
+
+                                return bg;
+                        }
+                };
+
+                template<typename T>
+                static VolumeData<T> erode ( const VolumeData<T>& inData, const double r )
+                {
+                        const auto& info = inData.getInfo();
+                        VolumeData<T> result ( info );
+                        Range range ( info );
+                        //mi::parallel_for_each ( range.begin(), range.end(), mi::erode ( inData, outData, r)   );
+                        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, false ) );
+                        return std::move ( result );
+                }
+
+                template<typename T>
+                static VolumeData<T> dilate ( const VolumeData<T>& inData, const double r )
+                {
+                        const auto& info = inData.getInfo();
+                        VolumeData<T> result ( info );
+                        Range range ( info );
+                        //mi::parallel_for_each ( range.begin(), range.end(), mi::erode ( inData, outData, r)   );
+                        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ) );
+                        return std::move ( result );
+                }
+
+                // Convert vector distance field to scalar vector field
+                static VolumeData<float> vec2dist ( const VolumeData<Vector3s>& input )
+                {
+                        const auto& info = input.getInfo();
+                        VolumeData<float> result ( info );
+
+                        for ( const auto& p : mi4::Range ( info ) ) {
+                                result.set ( p, info.getLength ( input.get ( p ) ) );
+                        }
+
+                        return result;
+                }
+
+		static VolumeData<Vector3s> distance_field ( const VolumeData<char>& binary )
+                {
+                        const int nthreads = std::thread::hardware_concurrency();
+                        const auto& info = binary.getInfo();
+                        const auto& size = info.getSize();
+                        mi4::VolumeData<Vector3s> result ( info );
+                        mi4::VolumeData<short> tmpz ( info );
+
+                        std::vector<std::thread> threads;
+
+                        for ( int x = 0 ; x < size.x() ; ++x ) {
+                                threads.push_back ( std::thread ( dist_init, x, std::ref ( binary ), std::ref ( tmpz ) ) );
+
+                                if ( threads.size() == nthreads ) {
+                                        for ( auto& th : threads ) {
+                                                th.join();
+                                        }
+
+                                        threads.clear();
+                                }
+                        }
+
+                        for ( auto& th : threads ) {
+                                th.join();
+                        }
+
+                        threads.clear();
+
+                        for ( int z = 0 ; z < size.z() ; ++z ) {
+                                threads.push_back ( std::thread ( dist_main, z, std::ref ( binary ), std::ref ( tmpz ), std::ref ( result ) ) );
+
+                                if ( threads.size() == nthreads ) {
+                                        for ( auto& th : threads ) {
+                                                th.join();
+                                        }
+
+                                        threads.clear();
+                                }
+                        }
+
+                        for ( auto& th : threads ) {
+                                th.join();
+                        }
+                        return result;
+                }
+
+		/**
+		 *  valid label: >0
+		 *  weight : distance
+		 */
+		template <typename T>
+		static 
+		void watershed ( mi4::VolumeData<T>& label,  const mi4::VolumeData<float>& weight ) {
+                        const auto& info = label.getInfo();
+
+			PriorityQueue <Point3i> pq;
+			for ( const auto& p : mi4::Range(info)) {
+				if ( label.get( p ) > 0 && weight.get(p) > 0 ) {
+					pq.push( p, -weight.get( p ) ) ;
+                                }
+			}
+
+			std::vector<Point3i> nbr;
+			nbr.push_back(Point3i(1, 0, 0));
+			nbr.push_back(Point3i(-1, 0, 0));
+			nbr.push_back(Point3i(0, 1,  0));
+			nbr.push_back(Point3i(0, -1, 0));
+			nbr.push_back(Point3i(0, 0, 1));
+			nbr.push_back(Point3i(0, 0, -1));
+			
+			while( !pq.empty() ) {
+				const auto p = pq.getTopIndex();
+				pq.pop();
+				const int labelId = label.get( p ); // Label ID to be propagated.
+				for( const auto& d : nbr ) {
+					const Point3i np = d + p;
+					if ( ! info.isValid( np ) ) continue;
+					if ( label.get( np ) != 0 ) continue;
+					if ( weight.get( np ) > 0 ) {
+						label.set( np, labelId );
+						pq.push( np, -weight.get( np ) );
+					}
+				}
+			}
+		return;
+		}
 
 
 
-
-
-};
+        private:
+        };
 }
 #endif //MI4_VOLUME_DATA_UTILITY_HPP

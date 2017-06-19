@@ -1,6 +1,8 @@
 SET ( INCLUDE_FILES
       Camera.hpp
       ColorMapper.hpp
+      ccl.hpp
+      ConnectedComponentLabeller.hpp
       FrameBufferObject.hpp
       glconf.hpp
       Kdtree.hpp
