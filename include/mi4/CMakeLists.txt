@@ -24,6 +24,10 @@ SET ( INCLUDE_FILES
       VolumeDataCreator.hpp
       VolumeDataUtility.hpp
       Xml.hpp
+      Mesh.hpp
+      MeshUtility.hpp
+      VolumeDataPolygonizer.hpp
+      mc_table.hpp
     )
 INSTALL ( FILES ${INCLUDE_FILES}
           DESTINATION include/mi4

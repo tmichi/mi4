@@ -8,98 +8,110 @@
 #include <mi4/VolumeData.hpp>
 namespace mi4
 {
-template <typename T>
-class VolumeDataCreator
-{
-private:
-    class Impl
-    {
-    private:
-        VolumeData<T>& _data; ///< Volume data.
-        T _value;      ///< Current value.
-    private:
-        Impl ( const Impl& that ) = delete;
-        Impl ( Impl&& that ) = delete;
-        Impl& operator = ( const Impl& that ) = delete;
-        Impl& operator = ( Impl&& that ) = delete;
-    public:
-        Impl ( VolumeData<T>& data, const T value ) : _data ( data ), _value ( value )
+        template <typename T>
+        class VolumeDataCreator
         {
-            return;
-        }
-        ~Impl ( void ) = default;
+        private:
+                class Impl
+                {
+                private:
+                        VolumeData<T>& _data; ///< Volume data.
+                        T _value;      ///< Current value.
+                private:
+                        Impl ( const Impl& that ) = delete;
+                        Impl ( Impl&& that ) = delete;
+                        Impl& operator = ( const Impl& that ) = delete;
+                        Impl& operator = ( Impl&& that ) = delete;
+                public:
+                        Impl ( VolumeData<T>& data, const T value ) : _data ( data ), _value ( value )
+                        {
+                                return;
+                        }
+                        ~Impl ( void ) = default;
 
-        VolumeData<T>& data ( void )
-        {
-            return this->_data;
-        }
-        T& value ( void )
-        {
-            return this->_value;
-        }
-    };
-    std::unique_ptr<Impl> _impl;
-private:
-    VolumeDataCreator ( const VolumeDataCreator& that ) = delete;
-    VolumeDataCreator ( VolumeDataCreator&& that ) = delete;
-    VolumeDataCreator& operator = ( const VolumeDataCreator& that ) = delete;
-    VolumeDataCreator& operator = ( VolumeDataCreator&& that ) = delete;
-public:
-    explicit VolumeDataCreator ( VolumeData<T>& data, const T value = T() ) : _impl ( new Impl ( data, value ) )
-    {
-        this->fill();
-    }
+                        VolumeData<T>& data ( void )
+                        {
+                                return this->_data;
+                        }
+                        T& value ( void )
+                        {
+                                return this->_value;
+                        }
+                };
+		
+                std::unique_ptr<Impl> _impl;
+        private:
+                VolumeDataCreator ( const VolumeDataCreator& that ) = delete;
+                VolumeDataCreator ( VolumeDataCreator&& that ) = delete;
+                VolumeDataCreator& operator = ( const VolumeDataCreator& that ) = delete;
+                VolumeDataCreator& operator = ( VolumeDataCreator&& that ) = delete;
+        public:
+		/** 
+		 * @brief Constructor. 
+		 * @param [in] data Reference to the volume data.
+		 * @param [in] value Initial value to be filled.
+		 */
+                explicit VolumeDataCreator ( VolumeData<T>& data, const T value = T() ) : _impl ( new Impl ( data, value ) )
+                {
+                        this->fill();
+			return;
+                }
 
-    ~VolumeDataCreator ( void ) = default;
+                ~VolumeDataCreator ( void ) = default;
 
-    VolumeDataCreator<T>& setValue ( const T value )
-    {
-        this->_impl->value() = value;
-        return *this;
-    }
-    T getValue ( void ) const
-    {
-        return this->_impl->value();
-    }
-    VolumeDataCreator<T>& fill ( void )
-    {
-        const auto& info = this->_impl->data().getInfo();
-        return this->fillBlock ( info.getMin(), info.getMax() );
-    }
-    inline VolumeDataCreator<T>& fillSphere ( const Point3i& p, const double rad )
-    {
-        const auto& info = this->_impl->data().getInfo();
-        const auto rp = info.getPointInVoxelCeil ( Point3d ( rad, rad, rad ) );
-        const auto radSqr = rad * rad;
+                VolumeDataCreator<T>& setValue ( const T value )
+                {
+                        this->_impl->value() = value;
+                        return *this;
+                }
+		
+                T getValue ( void ) const
+                {
+                        return this->_impl->value();
+                }
 
-        for ( const auto& d : mi4::Range ( -rp, rp ) ) {
-            if ( info.getLengthSquared ( d )  > radSqr ) {
-                continue;
-            }
+                VolumeDataCreator<T>& fill ( void )
+                {
+                        const auto& info = this->_impl->data().getInfo();
+                        return this->fillBlock ( info.getMin(), info.getMax() );
+                }
 
-            this->fillPoint ( p + d );
-        }
+                inline VolumeDataCreator<T>& fillSphere ( const Point3i& p, const double rad )
+                {
+                        const auto& info = this->_impl->data().getInfo();
+                        const auto rp = info.getPointInVoxelCeil ( Point3d ( rad, rad, rad ) );
+                        const auto radSqr = rad * rad;
 
-        return *this;
-    }
-    inline VolumeDataCreator<T>& fillPoint ( const Point3i& p )
-    {
-        auto& data = this->_impl->data();
+                        for ( const auto& d : mi4::Range ( -rp, rp ) ) {
+                                if ( info.getLengthSquared ( d )  > radSqr ) {
+                                        continue;
+                                }
+                                this->fillPoint ( p + d );
+                        }
 
-        if ( data.getInfo().isValid ( p ) ) {
-            data.set ( p, this->getValue() );
-        }
+                        return *this;
+                }
+                inline VolumeDataCreator<T>& fillPoint ( const Point3i& p )
+                {
+                        auto& data = this->_impl->data();
 
-        return *this;
-    }
-    inline VolumeDataCreator<T>& fillBlock ( const Point3i& bmin,  const Point3i& bmax )
-    {
-        for ( const auto& p : mi4::Range ( bmin, bmax ) ) {
-            this->fillPoint ( p );
-        }
+                        if ( data.getInfo().isValid ( p ) ) {
+                                data.set ( p, this->getValue() );
+                        }
 
-        return *this;
-    }
-};
+                        return *this;
+                }
+		/**
+		 * Fill specified range by the current value 
+		 *
+		 */
+                inline VolumeDataCreator<T>& fillBlock ( const Point3i& bmin,  const Point3i& bmax )
+                {
+                        for ( const auto& p : mi4::Range ( bmin, bmax ) ) {
+                                this->fillPoint ( p );
+                        }
+                        return *this;
+                }
+        };
 }
 #endif// MI_VOLUME_DATA_CREATOR_HPP
