@@ -41,7 +41,7 @@ namespace mi4
                                 return false;
                         }
 
-a                        fin.seekg ( headerSize );
+                        fin.seekg ( headerSize );
 
                         if ( !data.read ( fin ) ) {
                                 std::cerr << "Error occured." << std::endl;
@@ -80,11 +80,11 @@ a                        fin.seekg ( headerSize );
                         return true;
                 }
 
-		/****
-		 * Binarization
-		 */
+                /****
+                 * Binarization
+                 */
                 template <typename T, typename S>
-                static VolumeData<S> binarize ( const VolumeData<T>& data, const T threshold , const S fgValue = 1 )
+                static VolumeData<S> binarize ( const VolumeData<T>& data, const T threshold, const S fgValue = 1 )
                 {
                         VolumeData<S> result ( data.getInfo() );
 
@@ -98,7 +98,7 @@ a                        fin.seekg ( headerSize );
 
                 static VolumeData<char> extractBoundaryVoxels ( const VolumeData<char>& data )
                 {
-			const char BG_VALUE = 0;
+                        const char BG_VALUE = 0;
                         VolumeData <char> result ( data.getInfo() );
                         Range nbr ( mi4::Point3i ( -1, -1, -1 ), mi4::Point3i ( 1, 1, 1 ) );
 
@@ -127,15 +127,17 @@ a                        fin.seekg ( headerSize );
                                         }
                                 }
                         }
+
                         return result;
                 }
-		//
-		// 型変換
-		//
+                //
+                // 型変換
+                //
                 template <typename T, typename S>
                 static VolumeData<S> cast ( const VolumeData<T>& data )
                 {
                         VolumeData<S> result ( data.getInfo() );
+
                         for ( const auto& p : Range ( data.getInfo() ) ) {
                                 result.set ( p, static_cast<S> ( data.get ( p ) ) );
                         }
@@ -150,23 +152,23 @@ a                        fin.seekg ( headerSize );
                         const auto& pitch = info.getPitch();
                         mi4::Point3i size = bmax - bmin + Point3i ( 1, 1, 1 );
                         mi4::Point3d origin = info.getPointInSpace ( bmin );
-                       
-			VolumeData<T> result ( VolumeInfo ( size, pitch, origin ) );
-			
+
+                        VolumeData<T> result ( VolumeInfo ( size, pitch, origin ) );
+
                         for ( const auto& p : Range ( result.getInfo() ) ) {
                                 result.set ( p, data.get ( bmin + p ) );
                         }
-			
+
                         return std::move ( result );
                 }
-		
-		
+
+
                 static
                 VolumeData<char> diff ( const VolumeData<char>& srcData, const VolumeData<char>& trgData )
-		{
-			const auto& info =  srcData.getInfo();
-			VolumeData<char> outData ( info );
-				
+                {
+                        const auto& info =  srcData.getInfo();
+                        VolumeData<char> outData ( info );
+
                         for ( const auto& p : mi4::Range ( info ) ) {
                                 char value = 0;
 
@@ -258,7 +260,6 @@ a                        fin.seekg ( headerSize );
                         const auto& info = inData.getInfo();
                         VolumeData<T> result ( info );
                         Range range ( info );
-                        //mi::parallel_for_each ( range.begin(), range.end(), mi::erode ( inData, outData, r)   );
                         std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, false ) );
                         return std::move ( result );
                 }
@@ -269,7 +270,6 @@ a                        fin.seekg ( headerSize );
                         const auto& info = inData.getInfo();
                         VolumeData<T> result ( info );
                         Range range ( info );
-                        //mi::parallel_for_each ( range.begin(), range.end(), mi::erode ( inData, outData, r)   );
                         std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ) );
                         return std::move ( result );
                 }
@@ -287,124 +287,123 @@ a                        fin.seekg ( headerSize );
                         return result;
                 }
 
-	private:
-		static void dist_main ( const int z,  const VolumeData<char>& binary, const VolumeData<short>& tmpz, VolumeData<mi4::Vector3s>& result )
-		//		static void dist_main ( const int sz,  const int ez, const VolumeData<char>& binary, const VolumeData<short>& tmpz, VolumeData<mi4::Vector3s>& result )
-			{
-				const auto& info = binary.getInfo();
-				const auto& size = info.getSize();
-				//			for ( int z = sz ; z < ez ; ++z ) {
-				for ( int y = 0 ; y < size.y() ; ++y ) {
-					std::vector<short> cloy ( size.x(), std::numeric_limits<short>::min() ) ;
-					
-					for ( int x = 0 ; x < size.x() ; ++x ) {
-						if ( binary.get ( x, y, z ) == 0 ) {
-							cloy[x] = y;
-						} else {
-							float mind = std::numeric_limits<float>::max();
-							
-							for ( int dy = 0 ; dy < size.y() ; ++dy ) {
-								auto clz = tmpz.get ( mi4::Point3i ( x, dy, z ) );
-								
-								if ( clz <  0 ) {
-									continue;        // when closest site does not exist.
-								}
-								
-								Vector3s v ( 0, dy - y, clz - z ); // (0, dy, dz)
-								float d = info.getLength ( v );	 //dy * dy + dz * dz
-								
-								if ( d < mind ) {
-									mind = d;
-									cloy[x] = dy;
-								}
-							}
-						}
-					}
-					
-					for ( int x = 0 ; x < size.x() ; ++x ) {
-						short clox = std::numeric_limits<short>::min();
-						
-						if ( binary.get ( x, y, z ) == 0 ) {
-							clox = x;
-						} else {
-							float mind = std::numeric_limits<float>::max();
-							
-							for ( int dx = 0 ; dx < size.x() ; ++dx ) {
-								if ( cloy[dx] < 0 ) {
-									continue;
-								}
-								
-								Vector3s v ( dx - x, cloy[dx] - y, tmpz.get ( mi4::Point3i ( dx, cloy[dx], z ) ) - z );
-								float d = info.getLength ( v );
-								
-								if ( d < mind ) {
-									mind = d;
-									clox = dx;
-								}
-							}
-						}
-						
-						const short cx = clox;
-						const short cy = cloy[cx];
-						const short cz = tmpz.get ( mi4::Point3i ( cx, cy, z ) );
-						result.set ( mi4::Point3i ( x, y, z ), Vector3s ( cx - x, cy - y, cz - z ) );
-					}
-				}
-//			}
-				return;
-			}
-		
-		static void dist_init ( const int x,  const VolumeData<char>& binary, VolumeData<short>& tmpz )
-		//		static void dist_init ( const int sx, const int ex, const VolumeData<char>& binary, VolumeData<short>& tmpz )
-			{
-		const auto& info = binary.getInfo();
-                const auto& size = info.getSize();
-//		for ( int x = sx ; x < ex ; ++x ){
-                for ( int y = 0 ; y < size.y() ; ++y ) {
-                        int cz = std::numeric_limits<short>::min();
+        private:
+                static void dist_main ( const int z,  const VolumeData<char>& binary, const VolumeData<short>& tmpz, VolumeData<mi4::Vector3s>& result )
+                {
+                        const auto& info = binary.getInfo();
+                        const auto& size = info.getSize();
 
-                        for ( int z = 0 ; z < size.z() ; ++z ) {
-                                const mi4::Point3i p ( x, y, z );
+                        for ( int y = 0 ; y < size.y() ; ++y ) {
+                                std::vector<short> cloy ( size.x(), std::numeric_limits<short>::min() ) ;
 
-                                if ( binary.get ( p ) == 0 ) {
-                                        cz = z;
-                                }
+                                for ( int x = 0 ; x < size.x() ; ++x ) {
+                                        if ( binary.get ( x, y, z ) == 0 ) {
+                                                cloy[x] = y;
+                                        } else {
+                                                float mind = std::numeric_limits<float>::max();
 
-                                tmpz.set ( p, cz );
-                        }
+                                                for ( int dy = 0 ; dy < size.y() ; ++dy ) {
+                                                        auto clz = tmpz.get ( mi4::Point3i ( x, dy, z ) );
 
-                        cz = std::numeric_limits<short>::min();
+                                                        if ( clz <  0 ) {
+                                                                continue;        // when closest site does not exist.
+                                                        }
 
-                        for ( int z = size.z() - 1 ; z >= 0 ; --z ) {
-                                const mi4::Point3i p ( x, y, z );
+                                                        Vector3s v ( 0, dy - y, clz - z ); // (0, dy, dz)
+                                                        float d = info.getLength ( v );	 //dy * dy + dz * dz
 
-                                if ( binary.get ( p ) == 0 ) {
-                                        cz = z;
-                                } else {
-                                        if ( std::fabs ( cz - z ) > std::fabs ( z - tmpz.get ( p ) ) ) {
-                                                cz = tmpz.get ( p );
+                                                        if ( d < mind ) {
+                                                                mind = d;
+                                                                cloy[x] = dy;
+                                                        }
+                                                }
                                         }
                                 }
 
-                                tmpz.set ( p, cz );
+                                for ( int x = 0 ; x < size.x() ; ++x ) {
+                                        short clox = std::numeric_limits<short>::min();
+
+                                        if ( binary.get ( x, y, z ) == 0 ) {
+                                                clox = x;
+                                        } else {
+                                                float mind = std::numeric_limits<float>::max();
+
+                                                for ( int dx = 0 ; dx < size.x() ; ++dx ) {
+                                                        if ( cloy[dx] < 0 ) {
+                                                                continue;
+                                                        }
+
+                                                        Vector3s v ( dx - x, cloy[dx] - y, tmpz.get ( mi4::Point3i ( dx, cloy[dx], z ) ) - z );
+                                                        float d = info.getLength ( v );
+
+                                                        if ( d < mind ) {
+                                                                mind = d;
+                                                                clox = dx;
+                                                        }
+                                                }
+                                        }
+
+                                        const short cx = clox;
+                                        const short cy = cloy[cx];
+                                        const short cz = tmpz.get ( mi4::Point3i ( cx, cy, z ) );
+                                        result.set ( mi4::Point3i ( x, y, z ), Vector3s ( cx - x, cy - y, cz - z ) );
+                                }
                         }
-			//              }
-		}
-        }
+                        return;
+                }
 
-		static std::vector<int> getRanges ( const size_t length , const int nthread ) {
-		std::vector<int> ranges;
-		const int npt = (length  - 1 ) / nthread + 1;
-		int n = 0;
-		while ( n < length ) {
-			ranges.push_back(n);
-			n += npt;
-		}
-		ranges.push_back( length);
-		return ranges;	
-	}
+                static void dist_init ( const int x,  const VolumeData<char>& binary, VolumeData<short>& tmpz )
+                {
+                        const auto& info = binary.getInfo();
+                        const auto& size = info.getSize();
 
-	public:
+                        for ( int y = 0 ; y < size.y() ; ++y ) {
+                                int cz = std::numeric_limits<short>::min();
+
+                                for ( int z = 0 ; z < size.z() ; ++z ) {
+                                        const mi4::Point3i p ( x, y, z );
+
+                                        if ( binary.get ( p ) == 0 ) {
+                                                cz = z;
+                                        }
+
+                                        tmpz.set ( p, cz );
+                                }
+
+                                cz = std::numeric_limits<short>::min();
+
+                                for ( int z = size.z() - 1 ; z >= 0 ; --z ) {
+                                        const mi4::Point3i p ( x, y, z );
+
+                                        if ( binary.get ( p ) == 0 ) {
+                                                cz = z;
+                                        } else {
+                                                if ( std::fabs ( cz - z ) > std::fabs ( z - tmpz.get ( p ) ) ) {
+                                                        cz = tmpz.get ( p );
+                                                }
+                                        }
+
+                                        tmpz.set ( p, cz );
+                                }
+                        }
+                }
+
+                static std::vector<int> getRanges ( const size_t length, const int nthread )
+                {
+                        std::vector<int> ranges;
+                        const int npt = ( length  - 1 ) / nthread + 1;
+                        int n = 0;
+
+                        while ( n < length ) {
+                                ranges.push_back ( n );
+                                n += npt;
+                        }
+
+                        ranges.push_back ( length );
+                        return ranges;
+                }
+
+        public:
                 static VolumeData<Vector3s> distance_field ( const VolumeData<char>& binary )
                 {
                         const int nthreads = std::thread::hardware_concurrency();
@@ -415,15 +414,9 @@ a                        fin.seekg ( headerSize );
 
                         std::vector<std::thread> threads;
 
-//			std::vector<int> rx = VolumeDataUtility::getRanges( size.x(), nthreads);
-//			std::vector<int> rz = VolumeDataUtility::getRanges( size.z(), nthreads);
-
-
-			
-			for ( int x = 0 ; x < size.x() ; ++x ) {
-			//for ( auto i = 0 ; i <  rx.size() - 1; ++i ) {
+                        for ( int x = 0 ; x < size.x() ; ++x ) {
                                 threads.push_back ( std::thread ( &VolumeDataUtility::dist_init, x, std::ref ( binary ), std::ref ( tmpz ) ) );
-				//threads.push_back ( std::thread ( &VolumeDataUtility::dist_init, rx[i], rx[i+1], std::ref ( binary ), std::ref ( tmpz ) ) );
+
                                 if ( threads.size() == nthreads ) {
                                         for ( auto& th : threads ) {
                                                 th.join();
@@ -438,11 +431,10 @@ a                        fin.seekg ( headerSize );
                         }
 
                         threads.clear();
-			
+
                         for ( int z = 0 ; z < size.z() ; ++z ) {
-				//for ( int i = 0 ; i < rz.size() - 1; ++i ) {
                                 threads.push_back ( std::thread ( &VolumeDataUtility::dist_main, z, std::ref ( binary ), std::ref ( tmpz ), std::ref ( result ) ) );
-                                //threads.push_back ( std::thread ( &VolumeDataUtility::dist_main, rz[i], rz[i+1], std::ref ( binary ), std::ref ( tmpz ), std::ref ( result ) ) );
+
                                 if ( threads.size() == nthreads ) {
                                         for ( auto& th : threads ) {
                                                 th.join();
@@ -460,7 +452,7 @@ a                        fin.seekg ( headerSize );
                 }
 
                 /********
-		 * Watershed.
+                 * Watershed.
                  * valid label: >0
                  * weight : distance
                  ********/
@@ -472,19 +464,14 @@ a                        fin.seekg ( headerSize );
 
                         PriorityQueue <Point3i> pq;
 
+                        // initialization. set pixels to the queue
                         for ( const auto& p : mi4::Range ( info ) ) {
                                 if ( label.get ( p ) > 0 && weight.get ( p ) > 0 ) {
                                         pq.push ( p, -weight.get ( p ) ) ;
                                 }
                         }
 
-                        std::vector<Point3i> nbr;
-                        nbr.push_back ( Point3i ( 1, 0, 0 ) );
-                        nbr.push_back ( Point3i ( -1, 0, 0 ) );
-                        nbr.push_back ( Point3i ( 0, 1,  0 ) );
-                        nbr.push_back ( Point3i ( 0, -1, 0 ) );
-                        nbr.push_back ( Point3i ( 0, 0, 1 ) );
-                        nbr.push_back ( Point3i ( 0, 0, -1 ) );
+                        std::vector<Point3i> nbr = { Point3i ( 1, 0, 0 ), Point3i ( -1, 0, 0 ), Point3i ( 0, 1,  0 ), Point3i ( 0, -1, 0 ), Point3i ( 0, 0, 1 ), Point3i ( 0, 0, -1 ) };
 
                         while ( !pq.empty() ) {
                                 const auto p = pq.getTopIndex();
@@ -511,10 +498,8 @@ a                        fin.seekg ( headerSize );
 
                         return;
                 }
-
-
-
         private:
         };
 }
+
 #endif //MI4_VOLUME_DATA_UTILITY_HPP

@@ -175,8 +175,7 @@ namespace mi4
                                                 isPolygonized = true;
                                         }
                                 }
-
-                                this->polygonize_cell ( cell, iso, mesh );
+				if ( isPolygonized ) this->polygonize_cell ( cell, iso, mesh );
                         }
 
                         return mesh;
