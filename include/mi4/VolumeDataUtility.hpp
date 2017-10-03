@@ -6,6 +6,7 @@
 //#include "ConnectedComponentLabeller.hpp"
 #include <thread>
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -78,6 +79,30 @@ namespace mi4
                         VolumeDataUtility::save ( data, filename );
                         std::cerr << "[debug] the result was saved to " << filename << std::endl;
                         return true;
+                }
+
+                template <typename T>
+                static VolumeData<T> changeEndian ( const VolumeData<T>& data )
+                {
+                        VolumeData<T> result ( data.getInfo() );
+
+                        for ( const auto& p : Range ( data.getInfo() ) ) {
+				const T v = data.get(p);
+				const int size = sizeof(T);
+				if ( size > 1 ) {
+					unsigned char *c = new unsigned char[size];
+					std::memcpy (&v, c, size);
+					for ( int i = 0 ; i < size / 2 ; ++i ) {
+						unsigned char tmp = c[i];
+						c[i] = c[ size - 1 - i ];
+						c[ size - 1 - i ] = tmp;
+					}
+					std::memcpy (c, &v, size);
+					delete[] c;
+				}
+                                result.set ( p, v );
+                        }
+                        return std::move ( result );
                 }
 
                 /****
@@ -260,7 +285,9 @@ namespace mi4
                         const auto& info = inData.getInfo();
                         VolumeData<T> result ( info );
                         Range range ( info );
-                        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, false ) );
+			const int nthreads = std::thread::hardware_concurrency();
+			mi4::parallel_for_each ( range.begin(), range.end(), morphology ( inData, result, r, false ), nthreads);
+                        //std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, false ) );
                         return std::move ( result );
                 }
 
@@ -270,7 +297,9 @@ namespace mi4
                         const auto& info = inData.getInfo();
                         VolumeData<T> result ( info );
                         Range range ( info );
-                        std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ) );
+			const int nthreads = std::thread::hardware_concurrency();
+			mi4::parallel_for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ), nthreads);
+                        //std::for_each ( range.begin(), range.end(), morphology ( inData, result, r, true ) );
                         return std::move ( result );
                 }
 
@@ -472,12 +501,11 @@ namespace mi4
                         }
 
                         std::vector<Point3i> nbr = { Point3i ( 1, 0, 0 ), Point3i ( -1, 0, 0 ), Point3i ( 0, 1,  0 ), Point3i ( 0, -1, 0 ), Point3i ( 0, 0, 1 ), Point3i ( 0, 0, -1 ) };
-
                         while ( !pq.empty() ) {
                                 const auto p = pq.getTopIndex();
                                 pq.pop();
                                 const int labelId = label.get ( p ); // Label ID to be propagated.
-
+				
                                 for ( const auto& d : nbr ) {
                                         const Point3i np = d + p;
 
@@ -498,7 +526,8 @@ namespace mi4
 
                         return;
                 }
-        private:
+
+	private:
         };
 }
 

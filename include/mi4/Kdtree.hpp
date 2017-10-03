@@ -231,6 +231,13 @@ namespace mi4
                         this->_parent.getAll ( point );
                         return this->build ( point, numMaxElementsPerNode );
                 }
+		
+		std::list<T> find ( const T p, const double radius, bool isSorted = false) {
+			std::list<T> result;
+			this->find(p, radius, result, isSorted);
+			return result;
+		}
+
                 void find ( const T p, const double radius, std::vector<T>& node, bool isSorted = false )
                 {
                         node.clear();
@@ -251,6 +258,15 @@ namespace mi4
 
                         return;
                 }
+
+		std::list<T> find ( const T p, const size_t n, bool isSorted = false) {
+			std::list<T> result;
+			this->find(p, n, result, isSorted);
+			return result;
+		}
+
+
+
                 void find ( const T p, const size_t num, std::vector<T>& node )
                 {
                         node.clear();

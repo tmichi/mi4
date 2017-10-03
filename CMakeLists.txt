@@ -1,12 +1,6 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.9)
 SET(CMAKE_VERBOSE_MAKEFILE 1)
 PROJECT(mi4)
-#linux
-if (UNIX AND NOT APPLE)
-	set(CMAKE_MODULE_PATH /usr/local/lib/cmake)
-	SET (LINUX TRUE)
-endif()
-
 set(MI4_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include")
 include_directories (${MI4_INCLUDE_DIRS})
 
@@ -30,9 +24,7 @@ if (Eigen3_FOUND)
 	include_directories (${EIGEN3_INCLUDE_DIRS})
 else ()
 	include_directories ("c:/usr/local/include")
-
 endif (Eigen3_FOUND)
-
 
 
 ENABLE_TESTING()
@@ -44,6 +36,6 @@ else () # Cygwin, Mac
 	link_directories(/usr/local/lib)
 endif (WIN32)
 ADD_SUBDIRECTORY(include/mi4)
-ADD_SUBDIRECTORY(examples)
 ADD_SUBDIRECTORY(tests)
-#ADD_SUBDIRECTORY(dev)
+ADD_SUBDIRECTORY(examples)
+
