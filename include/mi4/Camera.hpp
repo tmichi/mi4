@@ -48,18 +48,13 @@ namespace mi4
 
                 void getLookAt ( Eigen::Vector3d& eye, Eigen::Vector3d& center, Eigen::Vector3d& up )
                 {
-                        const Eigen::Quaterniond& rotation = this->_rotation;
+                        const auto& rotation = this->_rotation;
                         center = this->_center;
-                        const double& dist   = this->_dist;
+                        const auto& dist   = this->_dist;
 
-                        Eigen::Matrix3d r; // rotation matrix
-                        r.setIdentity();
-                        r = rotation.toRotationMatrix();
-                        const Eigen::Vector3d eye0 ( 0, 0, dist );
-                        const Eigen::Vector3d up0 ( 0, 1, 0 );
-
-                        eye = r * eye0 + center;
-                        up  = r * up0;
+                        const auto r = rotation.toRotationMatrix();
+                        eye = r * Eigen::Vector3d eye0 ( 0, 0, dist ) + center;
+                        up  = r * Eigen::Vector3d up0 ( 0, 1, 0 );
                         return;
                 }
 
@@ -92,7 +87,7 @@ namespace mi4
 
                 void rotate ( const double  oldx, const double oldy, const double newx, const double newy )
                 {
-                        Eigen::Quaterniond& rotation = this->_rotation;
+                        auto& rotation = this->_rotation;
                         Eigen::Vector3d oldp ( oldx, oldy, 0.0 );
                         Eigen::Vector3d newp ( newx, newy, 0.0 );
 
@@ -134,7 +129,7 @@ namespace mi4
                 {
                         this->_rotation.setIdentity();
                         auto m = this->_rotation.toRotationMatrix();
-                        Eigen::Vector3d oldRay =  m *  Eigen::Vector3d ( 0, 0, 1 );
+                        auto oldRay =  m *  Eigen::Vector3d ( 0, 0, 1 );
                         this->_rotation.setFromTwoVectors ( newRay, oldRay );
                 }
         private:

@@ -21,21 +21,8 @@ namespace mi4
                              const Eigen::Vector3d& lmax = Eigen::Vector3d ( 1, 1, 1 ) )
                 {
 
-                        Eigen::Vector3d v0 = bmax - bmin;
-                        const auto v1 = lmax - lmin;
-
-                        if ( v0.x() < 1.0e-40 ) {
-                                v0.x() = 1;
-                        }
-
-                        if ( v0.y() < 1.0e-40 ) {
-                                v0.y() = 1;
-                        }
-
-                        if ( v0.z() < 1.0e-40 ) {
-                                v0.z() = 1;
-                        }
-
+                        const auto v0 = this->avoid_zero(bmax - bmin);
+                        const auto v1 = this->avoid_zero(lmax - lmin);
                         this->_mat = Eigen::Translation3d ( lmin )
                                      * Eigen::Scaling ( v1.x() / v0.x(), v1.y() / v0.y(), v1.z() / v0.z() )
                                      * Eigen::Translation3d ( -bmin );
@@ -55,6 +42,20 @@ namespace mi4
                 {
                         return this->_inv * p;
                 }
+
+	private:
+		inline Eigen::Vector3d avoid_zero ( const Eigen::Vector3d& v ) const {
+			// avoid zero-denominator. 
+			Eigen::Vector3d result;
+			result.x() = this->check_zero( v.x());
+			result.y() = this->check_zero( v.y());
+			result.z() = this->check_zero( v.z());
+			return result;
+		}
+
+		inline double check_zero ( const double& v ) const {
+                        return ( v < 1.0e-40 ) ? 1 : v;
+		}
         };
 }
 #endif

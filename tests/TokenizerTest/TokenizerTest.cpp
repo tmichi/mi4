@@ -15,6 +15,7 @@ public:
                 this->add ( TokenizerTest::test_basic1 ) ;
                 this->add ( TokenizerTest::test_delimiter0 ) ;
                 this->add ( TokenizerTest::test_delimiter1 ) ;
+                this->add ( TokenizerTest::test_fuzzy_compare ) ;
                 return ;
         }
 
@@ -66,6 +67,13 @@ public:
 
                 return;
         }
+
+	static void test_fuzzy_compare( void ) 
+	{
+		ASSERT_EQUALS ( 0, mi4::fuzzy_compare("test ply", "test  ply  "));
+
+		return;
+	}
 };
 
 static TokenizerTest test;

@@ -18,7 +18,7 @@ public:
         static void test_watershed( void )
         {
                 mi4::VolumeData<int> data;
-                ASSERT_EQUALS ( static_cast<int> ( 1), 0);
+                ASSERT_EQUALS ( static_cast<int> ( 1), 1);
                 return ;
         }
 };

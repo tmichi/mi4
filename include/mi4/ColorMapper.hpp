@@ -9,7 +9,7 @@ namespace mi4
         class ColorMapper
         {
         private:
-                typedef std::tuple<float, float, float, float> value_type;
+                typedef std::tuple<float, float, float, float> value_type; // value, r, g, b
                 std::deque<value_type> _values;
         public:
                 void init ( const float minValue = 0.0f, const float maxValue = 1.0f )

@@ -23,11 +23,11 @@ namespace mi4
         class octree_non_copyable
         {
         private:
-                octree_non_copyable ( const octree_non_copyable& ) ;
-                octree_non_copyable ( octree_non_copyable&& ) ;
+                octree_non_copyable ( const octree_non_copyable& ) = delete;
+                octree_non_copyable ( octree_non_copyable&& ) = delete;
 
-                void operator = ( const octree_non_copyable& ) ;
-                void operator = ( octree_non_copyable&& ) ;
+                void operator = ( const octree_non_copyable& ) = delete;
+                void operator = ( octree_non_copyable&& ) = delete;
         public:
                 octree_non_copyable ( void ) = default;
                 virtual ~octree_non_copyable ( void ) = default;
@@ -44,7 +44,7 @@ namespace mi4
                 class node : private octree_non_copyable
                 {
                 private:
-                        T _value;
+                        T _value; // value
                         std::unique_ptr<node[]> _child;
                 public:
                         explicit node ( const T value = T() ) : _value ( T() )
@@ -59,7 +59,7 @@ namespace mi4
                                         return this->_value; //getter
                                 } else {
                                         const int d = dimension / 2;
-                                        const int idx = this->index ( x, y, z, d );
+                                        const auto idx = this->index ( x, y, z, d );
                                         return this->child ( idx ).get ( x % d, y % d, z % d, d );
                                 }
                         }
@@ -71,7 +71,7 @@ namespace mi4
                                 } else {
                                         this->create_children();
                                         const int d =  dimension / 2;
-                                        const int idx = this->index ( x, y, z, d );
+                                        const auto idx = this->index ( x, y, z, d );
                                         this->child ( idx ).set ( x % d, y % d, z % d, v, d );
                                 }
 
@@ -144,7 +144,7 @@ namespace mi4
                                                                 int lnx, lny, lnz, lxx, lxy, lxz;
 
                                                                 // skip when the child node is empty.
-                                                                const int idx = this->index ( x, y, z, 1 );
+                                                                const auto idx = this->index ( x, y, z, 1 );
 
                                                                 if ( !this->child ( idx ).bounding_box ( emptyValue, lnx, lny, lnz, lxx, lxy, lxz, d ) ) {
                                                                         continue;
@@ -181,7 +181,7 @@ namespace mi4
                                         for ( int i = 0 ; i < NUM_CHILDREN ; ++i ) {
                                                 result += this->child ( i ).count ( value, dimension / 2 );
                                         }
-                                }
+                              }
 
                                 return result;
                         }
@@ -200,8 +200,7 @@ namespace mi4
                                                         return false;        // different node.
                                                 }
                                         }
-
-                                        this->value() = this->child ( 0 ).value();
+					this->value() = this->child ( 0 ).value();
                                         this->_child.release(); // delete node.
                                         return true;
                                 }
@@ -228,7 +227,7 @@ namespace mi4
                                                 if ( ! this->child ( i ).write ( fout, emptyValue ) ) {
                                                         return false;
                                                 }
-                                        }
+					}
                                 } else if ( type == OCTREE_LEAF ) {
                                         return fout.write ( ( char* ) ( & ( this->value() ) ), sizeof ( T ) ).good();
                                 }
@@ -251,12 +250,11 @@ namespace mi4
                                         return fin.read ( ( char* ) ( &this->value() ), sizeof ( T ) ).good();
                                 } else if ( type == OCTREE_INTERMEDIATE ) {
                                         this->create_children();
-
                                         for ( int i = 0 ; i < NUM_CHILDREN ; ++i ) {
                                                 if ( !this->child ( i ).read ( fin, emptyValue ) ) {
                                                         return false;
                                                 }
-                                        }
+					}
 
                                         return true;
                                 } else {

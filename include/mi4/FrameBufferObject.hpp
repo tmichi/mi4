@@ -14,13 +14,17 @@ namespace mi4
                 GLuint _fbo; // frame buffer object
                 GLuint _cbo; //   +-- color buffer objcet
                 GLuint _rbo; //   +-- render buffer object
-
+	private:
+		FrameBufferObject ( const FrameBufferObject& that) = delete;
+		FrameBufferObject ( FrameBufferObject&& that) = delete;
+		void operator = ( const FrameBufferObject& that) = delete;
+		void operator = ( FrameBufferObject&& that) = delete;
         public:
-                FrameBufferObject ( const int width, const int height ) : _width ( width ), _height ( height )
+                explicit FrameBufferObject ( const int width, const int height ) : _width ( width ), _height ( height )
                 {
-                        GLuint& fbo = this->_fbo;
-                        GLuint& cbo = this->_cbo;
-                        GLuint& rbo = this->_rbo;
+                        auto& fbo = this->_fbo;
+                        auto& cbo = this->_cbo;
+                        auto& rbo = this->_rbo;
 
                         ::glGenTextures ( 1, &cbo );
                         ::glBindTexture ( GL_TEXTURE_2D, cbo );

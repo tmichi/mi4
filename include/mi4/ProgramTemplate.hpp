@@ -17,7 +17,7 @@ namespace mi4
 {
         namespace parser
         {
-// parse string to numeric value or something.
+                // parse string to numeric value or something.
                 template <typename T>
                 inline T parse ( const std::string& str );
 
@@ -80,12 +80,15 @@ namespace mi4
                 void operator = ( const Argument& ) = delete;
                 void operator = ( Argument&& ) = delete;
         public:
+		/**
+		 * @param[in] argc the number of arguments. use argc in main(). 
+		 * @param[out] argv the arguments. use argv in main(). 
+		 */
                 explicit Argument ( int argc = 0, char** argv = NULL )
                 {
                         for ( int i = 0 ; i < argc ; ++i ) {
                                 this->add ( argv[i] );
                         }
-
                         return;
                 }
 

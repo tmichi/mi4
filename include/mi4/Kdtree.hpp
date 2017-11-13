@@ -67,7 +67,6 @@ namespace mi4
                                 } else {
                                         this->_dimension = this->find_separation_axis ( begin, end );
                                         std::sort ( begin, end, less_vec_coord ( this->_dimension ) );
-                                        //typename std::vector<T>::iterator center = begin + static_cast<size_t> ( numElements / 2 );
                                         auto center = begin + static_cast<size_t> ( numElements / 2 );
                                         this->_points.push_back ( *center );
 
@@ -92,7 +91,6 @@ namespace mi4
                                 }
 
                                 if ( this->isLeaf() ) {
-                                        //typename std::list<T>::iterator iter;
                                         const auto sqr = radius * radius;
 
                                         for ( const auto& iter : this->_points ) {
@@ -108,8 +106,9 @@ namespace mi4
                                                 }
                                         }
                                 } else {
-                                        const auto p = this->_points.front()[this->_dimension]; // separator
-                                        const auto x = pnt[this->_dimension]; // target
+					const auto& d = this->_dimension;
+                                        const auto p = this->_points.front()[d]; // separator
+                                        const auto x = pnt[d]; // target
 
                                         if ( fabs ( x - p ) <= radius ) {
                                                 this->_child[0].find ( pnt, radius, result );
@@ -125,18 +124,20 @@ namespace mi4
 
                         void add ( const T& p, const size_t numMaxElementsPerNode )
                         {
+				auto& points = this->_points;
+				const auto& d = this->_dimension;
                                 if ( this->isLeaf() ) {
-                                        this->_points.push_back ( p );
+                                        points.push_back ( p );
 
-                                        if ( this->_points.size() > numMaxElementsPerNode ) {
-                                                std::vector<T> points ( this->_points.begin(), this->_points.end() );
-                                                this->_points.clear();
-                                                this->init ( points.begin(), points.end(), numMaxElementsPerNode );
+                                        if (points.size() > numMaxElementsPerNode ) {
+                                                std::vector<T> points0 ( points0.begin(), points0.end() );
                                                 points.clear();
+                                                this->init ( points0.begin(), points0.end(), numMaxElementsPerNode );
+                                                points0.clear();
                                         }
                                 } else {
-                                        const auto delim = this->_points.front[this->_dimension];
-                                        const auto x = p[this->_dimension];
+                                        const auto delim = points.front[d];
+                                        const auto x = p[d];
                                         const int idx = ( x < delim ) ? 0 : 1;
                                         this->_child[idx].add ( p, numMaxElementsPerNode );
                                 };

@@ -36,7 +36,11 @@ namespace mi4
                 Timer ( Timer&& that ) = delete;
                 Timer& operator = ( Timer&& that ) = delete;
         public:
-                explicit Timer ( const std::string& key = std::string ( "time" ), const bool isAutoPrint = true ) : _key ( key ), _isAutoPrint ( isAutoPrint ), _begin ( clock::now() ), _time ( -1 )
+		/**
+		 * @param [in] key keyword of the timer. 
+		 * @param [in] isAutoPrint set true when the duration is printed automatically.
+		 */
+		explicit Timer ( const std::string& key = std::string ( "time" ), const bool isAutoPrint = true ) : _key ( key ), _isAutoPrint ( isAutoPrint ), _begin ( clock::now() ), _time ( -1 )
                 {
                         return;
                 }
@@ -52,9 +56,12 @@ namespace mi4
                         }
                 }
 
-                void end ( void )
-                {
+		void stop ( void ) {
                         this->_time = std::chrono::duration_cast<std::chrono::milliseconds> ( clock::now() - this->_begin ).count() * 0.001;
+		}
+                void end ( void )
+			{
+		       return this->stop();
                         return;
                 }
 
@@ -91,7 +98,7 @@ namespace mi4
                         }
                 }
 
-                inline time_format estimate_format ( double t ) const
+                inline time_format estimate_format ( const double t ) const
                 {
                         if      ( t < 60   ) {
                                 return TIME_SECOND;
