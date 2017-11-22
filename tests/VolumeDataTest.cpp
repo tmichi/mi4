@@ -3,7 +3,7 @@
 class VolumeDataTest : public mi4::TestCase
 {
 public:
-        explicit VolumeDataTest ( void  ) : mi4::TestCase ( "test_test" )
+        explicit VolumeDataTest ( void  ) : mi4::TestCase ( "volume_data_test" )
         {
                 return;
         }

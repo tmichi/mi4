@@ -99,6 +99,13 @@ namespace mi4
                         b = static_cast<unsigned char> ( b0 ) ;
                         return;
                 }
+
+		template<typename T>
+		std::tuple<T,T,T> get ( const float value) const {
+			T r, g, b;
+			this->convert(value, r, g, b);
+			return std::make_tuple(r, g, b);
+		}
         };
 }
 #endif
