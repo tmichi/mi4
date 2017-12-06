@@ -13,6 +13,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+
 namespace mi4
 {
         namespace parser
@@ -91,7 +92,6 @@ namespace mi4
                         }
                         return;
                 }
-
                 ~Argument ( void ) = default;
 
                 int size ( void ) const
@@ -893,7 +893,7 @@ namespace mi4
 
                 AttributeSet& getAttributeSet ( void )
                 {
-                        return this->_attr;
+                        return *(this->_attr);
                 }
 
                 bool isDebugMode ( void ) const
@@ -940,7 +940,7 @@ namespace mi4
                 }
         private:
                 std::string  _cmdStr;
-                AttributeSet _attr;
+		std::unique_ptr<AttributeSet> _attr;
                 bool _isDebugModeOn;
         };//class ProgramTemplate
 }//namespace mi

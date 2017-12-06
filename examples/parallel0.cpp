@@ -12,7 +12,7 @@ public:
                 return;
         }
         void operator ()(const int& i)  {
-                std::lock_guard<std::mutex>lock(mutex);
+                std::lock_guard<std::mutex>lock(mutex); //critical section. 
                 sum += i; //p[i];
         }
 };
@@ -22,6 +22,7 @@ int main ( int argc , char** argv ) {
         for ( int i = 0; i < 100000; i ++ ) p.push_back(i*2);
         int sum = 0;
         mi4::parallel_for_each( p.begin(), p.end() ,fn(p, sum), std::thread::hardware_concurrency());
+        std::cerr<<sum<<std::endl;
         sum = 0;
 
         for ( auto i : p ) {

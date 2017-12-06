@@ -89,7 +89,7 @@ namespace mi4
                 {
                 private:
                         std::vector< RunLengthCodeBinary > _codes;
-                        std::vector<int> _idx;
+                        std::vector<int> _idx; // y * z
                 public:
                         RunLengthObject ( const VolumeData<T>& data )
                         {
@@ -285,7 +285,6 @@ namespace mi4
                                 labelData.set ( start.x() + j, start.y(), start.z(), label );
                         }
                 }
-
 
                 void join_xyz ( const int z )
                 {

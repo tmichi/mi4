@@ -153,22 +153,14 @@ namespace mi4
                                 str.append ( " " ).append ( iter.first ).append ( "=\"" ).append ( iter.second ).append ( "\"" );
                         }
 
-                        str.append ( ">¥n" );
+                        str.append ( ">" ).append("`\n" );
 
                         for ( auto& iter : children ) {
                                 str.append ( iter->toString ( indent + 1 ) );
                         }
 
-                        str.append ( space ).append ( "</" ).append ( this->getName() ).append ( ">¥n" );
+                        str.append ( space ).append ( "</" ).append ( this->getName() ).append ( ">").append("\n" );
                         return str;
-                }
-
-        private:
-                std::string to_string_attibute ( void ) const
-                {
-                        std::string attrs;
-
-                        return attrs;
                 }
         private:
                 std::string _name; // element name
@@ -198,7 +190,7 @@ namespace mi4
 
                 std::string toString ( void ) const
                 {
-                        return std::string ( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" ).append ( this->_root->toString() );
+                        return std::string ( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" ).append("\n").append ( this->_root->toString() );
                 }
         private:
                 std::unique_ptr<XmlElement> _root;

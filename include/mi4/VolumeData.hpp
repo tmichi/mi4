@@ -611,6 +611,7 @@ namespace mi4
                         return this->write ( fout );
                 }
 
+
                 bool read ( std::ifstream& fin )
                 {
                         if ( !this->isReadable() ) {

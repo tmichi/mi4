@@ -10,7 +10,7 @@
 #include "Xml.hpp"
 namespace mi4
 {
-        class Svg : public XmlDocument
+        class Svg 
         {
         private:
                 class Vector2d
@@ -30,6 +30,7 @@ namespace mi4
                         ~Vector2d ( void ) = default;
                 };
         private:
+		std::unique_ptr<XmlDocument> _xmldoc;
                 int _stroke_dashed;
                 double _stroke_width;
                 std::string _stroke_color;
@@ -39,12 +40,12 @@ namespace mi4
                 Svg::Vector2d _bmax;
                 Svg::Vector2d _size;
         public:
-                Svg ( const int width, const int height ) : XmlDocument ( "svg" ), _size ( width, height )
+                Svg ( const int width, const int height ) : _xmldoc(new XmlDocument ( "svg" )), _size ( width, height )
                 {
                         this->init();
                         this->setViewBox ( 0, 0, this->_size.x, this->_size.y );
 
-                        auto& root = this->getRoot();
+                        auto& root = this->_xmldoc->getRoot();
                         root.addAttribute ( "xmlns", "http://www.w3.org/2000/svg" );
                         root.addAttribute ( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
                         root.addAttribute ( "width",  this->_size.x ).addAttribute ( "height", this->_size.y );
@@ -100,7 +101,7 @@ namespace mi4
                 {
                         auto size = this->convertTo ( Svg::Vector2d ( x0, y0 ) );
                         auto v0   = this->convertTo ( Svg::Vector2d ( width, height ) );
-                        auto& element = this->getRoot().addChildElement ( "image" );
+                        auto& element = this->_xmldoc->getRoot().addChildElement ( "image" );
                         element.addAttribute ( "xlink:href", path ) ;
                         element.addAttribute ( "x", v0.x ).addAttribute ( "y", v0.y ).addAttribute ( "width", size.x ).addAttribute ( "height", size.y ) ;
                         return;
@@ -110,7 +111,7 @@ namespace mi4
                 {
                         auto v0 = this->convertTo ( Svg::Vector2d ( x0, y0 ) );
                         auto v1 = this->convertTo ( Svg::Vector2d ( x1, y1 ) );
-                        auto& element = this->getRoot().addChildElement ( "line" );
+                        auto& element = this->_xmldoc->getRoot().addChildElement ( "line" );
                         element.addAttribute ( "x1", v0.x ).addAttribute ( "y1", v0.y ).addAttribute ( "x2", v1.x ).addAttribute ( "y2", v1.y ) ;
 
                         if ( this->_stroke_dashed > 0 ) {
@@ -124,7 +125,7 @@ namespace mi4
                 void drawCircle ( const double cx, const double cy, const double r )
                 {
                         auto v0 = this->convertTo ( Svg::Vector2d ( cx, cy ) );
-                        auto& element = this->getRoot().addChildElement ( "circle" );
+                        auto& element = this->_xmldoc->getRoot().addChildElement ( "circle" );
                         element.addAttribute ( "cx", v0.x ).addAttribute ( "cy", v0.y ).addAttribute ( "r", r ).addAttribute ( "fill", this->_fill_color );
 
                         if ( this->_stroke_dashed > 0 ) {
@@ -146,7 +147,7 @@ namespace mi4
                         const double sizex = maxx - minx;
                         const double sizey = maxy - miny;
 
-                        auto& element = this->getRoot().addChildElement ( "rect" );
+                        auto& element = this->_xmldoc->getRoot().addChildElement ( "rect" );
                         element.addAttribute ( "x", minx ).addAttribute ( "y", miny ).addAttribute ( "width", sizex ).addAttribute ( "height", sizey ) ;
 
                         if ( this->_stroke_dashed > 0 ) {
@@ -157,6 +158,9 @@ namespace mi4
                         element.addAttribute ( "stroke", this->_stroke_color );
                         return;
                 }
+		std::string toString(void) const {
+			return this->_xmldoc->toString();
+		}
         private:
                 Svg::Vector2d convertTo ( const Vector2d& v ) const
                 {

@@ -100,10 +100,9 @@ namespace mi4
                         return;
                 }
 
-		template<typename T>
-		std::tuple<T,T,T> get ( const float value) const {
-			T r, g, b;
-			this->convert(value, r, g, b);
+		std::tuple<int, int, int> get ( const float value) const {
+			int r, g, b;
+			const_cast<ColorMapper*>(this)->convert(value, r, g, b);
 			return std::make_tuple(r, g, b);
 		}
         };
