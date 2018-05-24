@@ -1,3 +1,6 @@
+if ( UNIX AND NOT APPLE ) 
+	set(PTHREAD_LIBRARIES "pthread")
+endif ()
 if (glfw3_FOUND AND GLEW_FOUND)
 	ADD_EXECUTABLE(fbo0 fbo0.cpp)
 	TARGET_LINK_LIBRARIES(fbo0 glfw ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES})
@@ -28,12 +31,20 @@ ADD_EXECUTABLE(ccl1 ccl1.cpp)
 ADD_EXECUTABLE(cast0 cast0.cpp)
 ADD_EXECUTABLE(volcreator0 volcreator0.cpp)
 ADD_EXECUTABLE(tokenizer0 tokenizer0.cpp)
-
-## pthread is required for building multitreads in linux (ubuntu)
 ADD_EXECUTABLE(parallel0 parallel0.cpp)
 ADD_EXECUTABLE(volut0 volut0.cpp)
-if ( UNIX AND NOT APPLE )  #linux
-	TARGET_LINK_LIBRARIES(parallel0 pthread)
-	TARGET_LINK_LIBRARIES(volut0 pthread)
-endif ()
+
+TARGET_LINK_LIBRARIES(ccl0 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(ccl1 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(kdtree0 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(volume0 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(volume1 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(mesh0 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(volcreator0 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(normalize0 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(normalize1 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(cast0 Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(volut0 ${PTHREAD_LIBRARIES} Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(parallel0 ${PTHREAD_LIBRARIES})
+
 

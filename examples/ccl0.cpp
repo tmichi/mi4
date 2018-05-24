@@ -3,7 +3,7 @@
 #include <mi4/VolumeData.hpp>
 #include <random>
 #include <fstream>
-int main ( int argc, char** argv )
+int main ( void )
 {
         const int n = 2048;;
         mi4::VolumeData<char> volume ( mi4::VolumeInfo ( mi4::Point3i ( n, n, n ) ) );

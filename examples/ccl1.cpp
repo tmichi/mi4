@@ -4,7 +4,7 @@
 #include <mi4/VolumeDataCreator.hpp>
 #include <random>
 #include <fstream>
-int main ( int argc, char** argv )
+int main ( void ) 
 {
         const int n = 64;
         mi4::VolumeData<char> volume ( mi4::VolumeInfo ( mi4::Point3i ( n, n, n ) ) );
