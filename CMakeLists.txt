@@ -34,10 +34,6 @@ if (glfw3_FOUND)
     LINK_DIRECTORIES(${GLFW3_LIB_DIRS})
 endif()
 
-if (GLEW_FOUND)
-    include_directories(${GLEW_INCLUDE_DIRS})
-    LINK_DIRECTORIES(${GLEW_LIB_DIRS})
-endif()
 
 find_package(Eigen3 3.0 REQUIRED)
 
