@@ -1,3 +1,6 @@
+#
+# mi4 : Private library
+#
 CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 PROJECT(mi4 CXX)
 # set(CMAKE_VERBOSE_MAKEFILE 1) #コンパイルオプションを表示
