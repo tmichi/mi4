@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 PROJECT(mi4 CXX)
 # set(CMAKE_VERBOSE_MAKEFILE 1) #コンパイルオプションを表示
-# set(CMAKE_INSTALL_PREFIX "./ex")
+ set(CMAKE_INSTALL_PREFIX "./ex")
 # set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_BUILD_TYPE Release)
 # set(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -37,12 +37,6 @@ if (GLEW_FOUND)
 endif()
 
 find_package(Eigen3 3.0 REQUIRED)
-if (Eigen3_FOUND)
-	include_directories (${EIGEN3_INCLUDE_DIRS})
-else ()
-	#Set Eigen3 folder
-	include_directories ("c:/usr/local/include")
-endif (Eigen3_FOUND)
 
 
 ENABLE_TESTING()

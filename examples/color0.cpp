@@ -1,10 +1,10 @@
 #include <mi4/ColorMapper.hpp>
 #include <iostream>
-int main ( int argc, char** argv )
+int main (void)
 {
         mi4::ColorMapper mapper;
         mapper.init ( 0.1f, 0.9f );
-        const int N = 1000;
+        const int N = 100;
 
         for ( int i = 0 ; i <= N ; ++i ) {
                 const auto t =  i * 1.0f / N ;
