@@ -55,10 +55,13 @@ if(MSVC) #Visual Studio
         set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT") #todo
         set(CMAKE_CXX_FLAGS_MINSIZEREL     "/MT") #todo
 elseif(CMAKE_COMPILER_IS_GNUCXX) #UNIX
-        INCLUDE_DIRECTORIES(/usr/local/inlcude)
-        LINK_DIRECTORIES(/usr/local/lib)
+#        INCLUDE_DIRECTORIES(/usr/local/inlcude)
+#        LINK_DIRECTORIES(/usr/local/lib)
         #共通
-        set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Wcast-align -Wcast-qual -Wconversion -Wdisabled-optimization -Wendif-labels -Wfloat-equal -Winit-self -Winline -Wmissing-include-dirs -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -Wpacked -Wpointer-arith -Wredundant-decls -Wshadow -Wsign-promo -Wswitch-default -Wswitch-enum -Wvariadic-macros -Wwrite-strings ")
+        set(CMAKE_CXX_FLAGS "-Wall -Wextra" )
+#-pedantic -Wcast-align -Wcast-qual -Wconversion -Wdisabled-optimization -Wend -Wold-non-virtual-dtorif-labels -Wfloat-equal -Winit-self -Winline -Wmissing-include-dirs -Woverloaded-virtual -Wpacked -Wpointer-arith -Wredundant-decls -Wshadow -Wsign-promo -Wswitch-default -Wswitch-enum -Wvariadic-macros -Wwrite-strings ")
+# -Wold-non-virtual-dtor
+# -Wold-style-cast 
         set(CMAKE_CXX_FLAGS_DEBUG          "-g3 -O0 -pg")
         set(CMAKE_CXX_FLAGS_RELEASE        "-O3 -DNDEBUG -march=native")
         set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g3 -Og -pg")

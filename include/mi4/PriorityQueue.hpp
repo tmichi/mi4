@@ -1,6 +1,6 @@
 #ifndef MI_PRIORITY_QUEUE_HPP
 #define MI_PRIORITY_QUEUE_HPP 1
-
+#include <cstddef>
 #include <utility>
 #include <deque>
 #include <queue>
@@ -21,14 +21,7 @@ namespace mi4
         class PriorityQueue
         {
         private:
-                // disable copy constructor and = operator.
-                PriorityQueue ( const PriorityQueue& that ) = delete;
-                void operator = ( const PriorityQueue& that ) = delete;
-        private:
                 typedef std::pair<float, T> queue_type;
-                /**
-                 * @brief A functor for comparing pair value.
-                 */
                 class CompareDistance
                 {
                 public:
@@ -38,8 +31,11 @@ namespace mi4
                         }
                 };
 
-                std::priority_queue<queue_type, std::deque<queue_type>, CompareDistance> _pq;
                 size_t _num;
+                typename std::priority_queue<queue_type, typename std::deque<queue_type>, CompareDistance> _pq;
+                // disable copy constructor and = operator.
+                PriorityQueue ( const PriorityQueue& that ) = delete;
+                void operator = ( const PriorityQueue& that ) = delete;
         public:
                 /**
                  * @brief Constructor.
