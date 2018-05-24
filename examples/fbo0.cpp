@@ -9,7 +9,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "stb/stb_image_write.h"
 
-int main ( int argc, char** argv )
+int main ( void )
 {
         if ( ::glfwInit() == GL_FALSE )  {
                 std::cerr << "init failed" << std::endl;

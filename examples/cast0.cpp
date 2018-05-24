@@ -1,7 +1,7 @@
 #include <mi4/VolumeDataUtility.hpp>
 #include <mi4/SystemInfo.hpp>
 #include <random>
-int main ( int argc, char** argv )
+int main ( void )
 {
         int n = 1024;
         mi4::VolumeData<char> volume ( mi4::VolumeInfo ( mi4::Point3i ( n, n, n ) ) );

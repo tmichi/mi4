@@ -59,7 +59,7 @@ namespace mi4
                 }
                 template<>
                 inline uint64_t parse ( const std::string& str )
-		{
+                {
                         return std::stoull ( str );
                 }
                 template<>

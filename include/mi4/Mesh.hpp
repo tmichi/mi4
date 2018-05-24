@@ -29,23 +29,24 @@ namespace mi4
                         }
 
                         for ( int i = 0 ; i < mesh.getNumFaces() ; ++i ) {
-                                
+
                                 this->addFace ( mesh.getFaceIndices ( i ) );
                         }
                 }
 
-                size_t addPoint ( const Eigen::Vector3d& p ) const 
+                size_t addPoint ( const Eigen::Vector3d& p ) const
                 {
-                        const_cast<Mesh*>(this)->_vertex.push_back ( p );
+                        const_cast<Mesh*> ( this )->_vertex.push_back ( p );
                         return this->_vertex.size() - 1;
                 }
 
                 size_t addFace ( const std::vector<size_t>& fidx )
                 {
                         if ( fidx.size() != 3 ) {
-				std::cerr<<"only triangle is supported."<<std::endl;
+                                std::cerr << "only triangle is supported." << std::endl;
                                 return 0;
                         }
+
                         this->_index.insert ( this->_index.end(), fidx.begin(), fidx.end() );
                         return this->_index.size() / 3 ; // ID
                 }
@@ -69,11 +70,13 @@ namespace mi4
                 inline std::vector<size_t> getFaceIndices ( const size_t faceid ) const
                 {
                         std::vector<size_t> idx;
+
                         if ( this->isValidFaceId ( faceid ) ) {
                                 for ( int i = 0 ; i < 3 ; i++ ) {
-                                        idx.push_back( this->_index.at ( faceid * 3 + i ));
+                                        idx.push_back ( this->_index.at ( faceid * 3 + i ) );
                                 }
                         }
+
                         return idx;
                 }
 
@@ -118,6 +121,7 @@ namespace mi4
                         if ( this->isValidVertexId ( vertexid ) ) {
                                 this->_vertex.at ( vertexid ) = pos;
                         }
+
                         return;
                 };
                 void init ( void )

@@ -106,7 +106,7 @@ namespace mi4
 
                         typedef IndexedVector<Vector3d, size_t> VertexType;
                         std::vector<size_t> newId ( mesh.getNumVertices(), std::numeric_limits<size_t>::max() ) ;
-                        std::vector<bool> visited ( mesh.getNumVertices(), false);
+                        std::vector<bool> visited ( mesh.getNumVertices(), false );
                         std::vector< VertexType > points;
 
                         for ( size_t i = 0 ; i < mesh.getNumVertices() ; ++i ) {
@@ -116,17 +116,18 @@ namespace mi4
                         Kdtree<VertexType> kdtree ( points );
 
                         for ( size_t i = 0 ; i < mesh.getNumVertices() ; ++i ) {
-                                if ( visited[i]) {
+                                if ( visited[i] ) {
                                         continue;
                                 }
-				visited[i] = true;
+
+                                visited[i] = true;
                                 std::list<VertexType> result;
                                 kdtree.find ( VertexType ( mesh.getPosition ( i ), 0 ), eps, result );
                                 const size_t id = resultMesh.addPoint ( mesh.getPosition ( i ) ) ;
 
                                 for ( auto& i : result ) {
                                         newId[ i.id() ] = id;
-					visited[i.id()] = true;
+                                        visited[i.id()] = true;
                                 }
                         }
 
@@ -137,6 +138,7 @@ namespace mi4
                                         const auto id = index[j];
                                         index[j] = newId [ id ];
                                 }
+
                                 resultMesh.addFace ( index );
                         }
 

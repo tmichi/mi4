@@ -61,8 +61,8 @@ namespace mi4
                         [] ( const value_type & a, const value_type & b ) {
                                 return std::get<0> ( a ) < std::get<0> ( b );
                         }
-				);
-			
+                                                            );
+
                         if ( upper == values.begin() ) {
                                 r = std::get<1> ( *upper );
                                 g = std::get<2> ( *upper );
