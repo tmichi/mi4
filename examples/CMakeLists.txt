@@ -29,9 +29,10 @@ ADD_EXECUTABLE(cast0 cast0.cpp)
 ADD_EXECUTABLE(volcreator0 volcreator0.cpp)
 ADD_EXECUTABLE(tokenizer0 tokenizer0.cpp)
 
+## pthread is required for building multitreads in linux (ubuntu)
 ADD_EXECUTABLE(parallel0 parallel0.cpp)
 ADD_EXECUTABLE(volut0 volut0.cpp)
-if ( UNIX AND NOT APPLE ) 
+if ( UNIX AND NOT APPLE )  #linux
 	TARGET_LINK_LIBRARIES(parallel0 pthread)
 	TARGET_LINK_LIBRARIES(volut0 pthread)
 endif ()

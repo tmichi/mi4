@@ -23,34 +23,44 @@ namespace mi4
                 inline T parse ( const std::string& str );
 
                 template<>
-                inline char parse ( const std::string& str )
+                inline int8_t parse ( const std::string& str )
                 {
-                        return static_cast<char> ( std::stoi ( str ) );
+                        return static_cast<int8_t> ( std::stoi ( str ) );
                 }
                 template<>
-                inline unsigned char parse ( const std::string& str )
+                inline uint8_t parse ( const std::string& str )
                 {
-                        return static_cast<unsigned char> ( std::stoi ( str ) );
+                        return static_cast<uint8_t> ( std::stoi ( str ) );
                 }
                 template<>
-                inline short parse ( const std::string& str )
+                inline int16_t parse ( const std::string& str )
                 {
-                        return static_cast<short> ( std::stoi ( str ) );
+                        return static_cast<int16_t> ( std::stoi ( str ) );
                 }
                 template<>
-                inline unsigned short parse ( const std::string& str )
+                inline uint16_t parse ( const std::string& str )
                 {
-                        return static_cast<unsigned short> ( std::stoi ( str ) );
+                        return static_cast<uint16_t> ( std::stoi ( str ) );
                 }
                 template<>
-                inline int parse ( const std::string& str )
+                inline int32_t parse ( const std::string& str )
                 {
                         return std::stoi ( str );
                 }
                 template<>
-                inline unsigned int parse ( const std::string& str )
+                inline uint32_t parse ( const std::string& str )
                 {
-                        return static_cast<unsigned int> ( std::stoi ( str ) );
+                        return std::stoul ( str );
+                }
+                template<>
+                inline int64_t parse ( const std::string& str )
+                {
+                        return std::stoll ( str );
+                }
+                template<>
+                inline uint64_t parse ( const std::string& str )
+		{
+                        return std::stoull ( str );
                 }
                 template<>
                 inline float parse ( const std::string& str )
