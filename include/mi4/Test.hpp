@@ -53,7 +53,7 @@ namespace mi4
                 {
                         this->init();
 
-                        for ( auto && iter : this->_tests ) {
+                        for ( auto&& iter : this->_tests ) {
                                 const int numError = TestCase::getNumErrors();
 
                                 ( *iter )();
@@ -84,7 +84,7 @@ namespace mi4
                 {
                         std::list<std::string>& message = TestCase::get_message();
 
-                        for ( auto && iter : message ) {
+                        for ( auto&& iter : message ) {
                                 out << iter  << std::endl;
                         }
 
@@ -183,7 +183,7 @@ namespace mi4
                  */
                 int run ( const std::string& testname )
                 {
-                        for ( auto && iter : this->_testcases ) {
+                        for ( auto&& iter : this->_testcases ) {
                                 std::cerr << iter->getTestName() << ": ";
                                 iter->run();
                         }

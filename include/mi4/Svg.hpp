@@ -10,7 +10,7 @@
 #include "Xml.hpp"
 namespace mi4
 {
-        class Svg 
+        class Svg
         {
         private:
                 class Vector2d
@@ -30,7 +30,7 @@ namespace mi4
                         ~Vector2d ( void ) = default;
                 };
         private:
-		std::unique_ptr<XmlDocument> _xmldoc;
+                std::unique_ptr<XmlDocument> _xmldoc;
                 int _stroke_dashed;
                 double _stroke_width;
                 std::string _stroke_color;
@@ -40,7 +40,7 @@ namespace mi4
                 Svg::Vector2d _bmax;
                 Svg::Vector2d _size;
         public:
-                Svg ( const int width, const int height ) : _xmldoc(new XmlDocument ( "svg" )), _size ( width, height )
+                Svg ( const int width, const int height ) : _xmldoc ( new XmlDocument ( "svg" ) ), _size ( width, height )
                 {
                         this->init();
                         this->setViewBox ( 0, 0, this->_size.x, this->_size.y );
@@ -158,9 +158,10 @@ namespace mi4
                         element.addAttribute ( "stroke", this->_stroke_color );
                         return;
                 }
-		std::string toString(void) const {
-			return this->_xmldoc->toString();
-		}
+                std::string toString ( void ) const
+                {
+                        return this->_xmldoc->toString();
+                }
         private:
                 Svg::Vector2d convertTo ( const Vector2d& v ) const
                 {

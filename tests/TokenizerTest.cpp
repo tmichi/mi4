@@ -68,12 +68,12 @@ public:
                 return;
         }
 
-	static void test_fuzzy_compare( void ) 
-	{
-		ASSERT_EQUALS ( 0, mi4::fuzzy_compare("test ply", "test  ply  "));
+        static void test_fuzzy_compare ( void )
+        {
+                ASSERT_EQUALS ( 0, mi4::fuzzy_compare ( "test ply", "test  ply  " ) );
 
-		return;
-	}
+                return;
+        }
 };
 
 static TokenizerTest test;

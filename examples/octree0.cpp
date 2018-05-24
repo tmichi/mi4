@@ -10,7 +10,7 @@
 
 int main ( void )
 {
-	const std::string oct_name("out.oct");
+        const std::string oct_name ( "out.oct" );
         mi4::Octree<short> oct ( 32, 0 ); //Create 32 x 32 x 32 octree ( 5 levels ).
         oct.set ( 20, 30, 0, 4 );
         std::ofstream fout ( oct_name.c_str(), std::ios::binary );

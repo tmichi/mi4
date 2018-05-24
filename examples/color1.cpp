@@ -9,8 +9,9 @@ int main ( int argc, char** argv )
         for ( int i = 0 ; i <= N ; ++i ) {
                 const auto t =  i * 1.0f / N ;
                 int r, g, b;
-		std::tie(r,g,b) = mapper.get(t);
+                std::tie ( r, g, b ) = mapper.get ( t );
                 std::cerr << t << " :" << r << "," << g << "," << b << std::endl;
         }
+
         return 0;
 }

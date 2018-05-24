@@ -106,7 +106,7 @@ namespace mi4
                                                 }
                                         }
                                 } else {
-					const auto& d = this->_dimension;
+                                        const auto& d = this->_dimension;
                                         const auto p = this->_points.front()[d]; // separator
                                         const auto x = pnt[d]; // target
 
@@ -124,12 +124,13 @@ namespace mi4
 
                         void add ( const T& p, const size_t numMaxElementsPerNode )
                         {
-				auto& points = this->_points;
-				const auto& d = this->_dimension;
+                                auto& points = this->_points;
+                                const auto& d = this->_dimension;
+
                                 if ( this->isLeaf() ) {
                                         points.push_back ( p );
 
-                                        if (points.size() > numMaxElementsPerNode ) {
+                                        if ( points.size() > numMaxElementsPerNode ) {
                                                 std::vector<T> points0 ( points0.begin(), points0.end() );
                                                 points.clear();
                                                 this->init ( points0.begin(), points0.end(), numMaxElementsPerNode );
@@ -232,12 +233,13 @@ namespace mi4
                         this->_parent.getAll ( point );
                         return this->build ( point, numMaxElementsPerNode );
                 }
-		
-		std::list<T> find ( const T p, const double radius, bool isSorted = false) {
-			std::list<T> result;
-			this->find(p, radius, result, isSorted);
-			return result;
-		}
+
+                std::list<T> find ( const T p, const double radius, bool isSorted = false )
+                {
+                        std::list<T> result;
+                        this->find ( p, radius, result, isSorted );
+                        return result;
+                }
 
                 void find ( const T p, const double radius, std::vector<T>& node, bool isSorted = false )
                 {
@@ -260,11 +262,12 @@ namespace mi4
                         return;
                 }
 
-		std::list<T> find ( const T p, const size_t n, bool isSorted = false) {
-			std::list<T> result;
-			this->find(p, n, result, isSorted);
-			return result;
-		}
+                std::list<T> find ( const T p, const size_t n, bool isSorted = false )
+                {
+                        std::list<T> result;
+                        this->find ( p, n, result, isSorted );
+                        return result;
+                }
 
 
 
@@ -361,45 +364,27 @@ namespace mi4
         };
 
 
-        template <typename T, size_t Dim = 3>
+        template <typename T, typename S = int, size_t Dim = 3>
         class IndexedVector : public T
         {
         private:
-                int _id;
+                S _id;
         public:
-                IndexedVector ( const T& v = T(), const int id = -1 ) : T ( v ), _id ( id )
+                IndexedVector ( const T& v = T(), const S id = -1 ) : T ( v ), _id ( id )
                 {
                         return;
                 }
 
-                IndexedVector ( const IndexedVector<T>& that )
-                {
-                        this->copy ( that );
-                        return;
-                }
+                IndexedVector ( const IndexedVector<T, S, Dim>& that ) = default;
+                IndexedVector& operator = ( const IndexedVector<T, S, Dim>& that ) = default;
 
-                IndexedVector& operator = ( const IndexedVector<T>& that )
-                {
-                        this->copy ( that );
-                        return *this;
-                }
                 /**
                 * @brief get id of the point.
                 * @return ID of the point.
                 */
-                int id ( void ) const
+                S id ( void ) const
                 {
                         return this->_id;
-                }
-        protected:
-                void copy ( const IndexedVector<T>& that )
-                {
-                        for ( int i = 0 ; i < Dim ; i++ ) {
-                                this->operator[] ( i ) = that.operator[] ( i );
-                        }
-
-                        this->_id = that._id;
-                        return;
                 }
         };//IndexedVector
 }

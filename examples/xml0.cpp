@@ -12,14 +12,10 @@ int main ( int argc, char** argv )
         elem.addChildText ( "text" );
         std::cout << doc.toString() << std::endl;
 
-
-
-        for ( auto iter = elem.getChildren().begin(); iter != elem.getChildren().end() ; ++iter ) {
-                if ( ( *iter )->getType() != mi4::ElementNode ) {
-                        continue;
+        for ( auto& iter : elem.getChildren() ) {
+                if ( iter->getType() == mi4::ElementNode ) {
+                        std::cerr << dynamic_cast<mi4::XmlElement&> ( *iter ).getName() << std::endl;;
                 }
-
-                std::cerr << dynamic_cast<mi4::XmlElement&> ( **iter ).getName() << std::endl;;
         }
 
         return 0;

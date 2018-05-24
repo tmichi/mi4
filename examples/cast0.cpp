@@ -8,7 +8,7 @@ int main ( int argc, char** argv )
 
         std::random_device rd;
         std::mt19937 gen ( rd() );
-        std::uniform_int_distribution<> dis ( 0, n-1);
+        std::uniform_int_distribution<> dis ( 0, n - 1 );
 
         mi4::Range range ( mi4::Point3i ( -5, -5, -5 ), mi4::Point3i ( 5, 5, 5 ) );
 
@@ -16,13 +16,17 @@ int main ( int argc, char** argv )
                 const mi4::Point3i p ( dis ( gen ), dis ( gen ), dis ( gen ) );
 
                 for ( const auto& dp : range ) {
-                        if ( !volume.getInfo().isValid ( p + dp ) ) continue;
+                        if ( !volume.getInfo().isValid ( p + dp ) ) {
+                                continue;
+                        }
+
                         volume.set ( p + dp, 1 );
                 }
         }
+
         //mi4::VolumeData<int> castData = mi4::VolumeDataUtility::cast<char, int>(volume);
-        mi4::VolumeData<int> castData = mi4::VolumeDataUtility::cast<char, int>(volume);
-        std::cerr<<mi4::SystemInfo::getPeakMemorySize()/1024.0/1024.0<<std::endl;
+        mi4::VolumeData<int> castData = mi4::VolumeDataUtility::cast<char, int> ( volume );
+        std::cerr << mi4::SystemInfo::getPeakMemorySize() / 1024.0 / 1024.0 << std::endl;
 
 
         return 0;

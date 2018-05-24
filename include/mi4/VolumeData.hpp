@@ -26,15 +26,15 @@ namespace mi4
         typedef Eigen::Vector3f Point3f;
         typedef Eigen::Vector3i Point3i;
         typedef Eigen::Vector3f Color3f;
-	
+
         class VolumeInfo
         {
         public:
                 explicit VolumeInfo ( const Point3i& size = Point3i ( 0, 0, 0 ), const Point3d& pitch = Point3d ( 1, 1, 1 ), const Point3d& origin = Point3d ( 0, 0, 0 ) ) : _size ( size ), _pitch ( pitch ), _origin ( origin )
-		{
-			return;
-		}
-		
+                {
+                        return;
+                }
+
                 ~VolumeInfo ( void ) = default;
                 VolumeInfo ( const VolumeInfo& that ) = default;
                 VolumeInfo ( VolumeInfo&& info ) = default;
@@ -65,10 +65,11 @@ namespace mi4
                 }
 
                 VolumeInfo&
-                initByBoundingBox ( const Vector3d& bmin, const Vector3d& bmax, const Point3d& pitch, const double offset ) {
-			const auto origin = bmin - Vector3d ( offset, offset, offset );
+                initByBoundingBox ( const Vector3d& bmin, const Vector3d& bmax, const Point3d& pitch, const double offset )
+                {
+                        const auto origin = bmin - Vector3d ( offset, offset, offset );
                         Point3i size;
-			size.x() = this->ceil_int ( ( bmax.x() - bmin.x() + 2 * offset ) / pitch.x() ) ;
+                        size.x() = this->ceil_int ( ( bmax.x() - bmin.x() + 2 * offset ) / pitch.x() ) ;
                         size.y() = this->ceil_int ( ( bmax.y() - bmin.y() + 2 * offset ) / pitch.y() ) ;
                         size.z() = this->ceil_int ( ( bmax.z() - bmin.z() + 2 * offset ) / pitch.z() ) ;
                         return this->init ( size, pitch, origin );
@@ -95,7 +96,7 @@ namespace mi4
                         return this->_origin;
                 }
 
-		
+
                 Point3d getPointInSpace ( const Point3i& p ) const
                 {
                         const auto& pitch = this->getPitch();
@@ -107,10 +108,10 @@ namespace mi4
                         const auto& pitch = this->getPitch();
                         const auto v = p - this->getOrigin();
                         return  Point3i (
-                                       static_cast<int> ( v.x() / pitch.x() ),
-                                       static_cast<int> ( v.y() / pitch.y() ),
-                                       static_cast<int> ( v.z() / pitch.z() )
-                               );
+                                        static_cast<int> ( v.x() / pitch.x() ),
+                                        static_cast<int> ( v.y() / pitch.y() ),
+                                        static_cast<int> ( v.z() / pitch.z() )
+                                );
                 }
                 Point3i convertVectorCeil ( const Vector3d& p ) const
                 {
@@ -153,7 +154,7 @@ namespace mi4
 
                 Vector3d getVectorInSpace ( const Vector3s& p ) const
                 {
-                        return this->getVector(this->to_vector3i(p))+this->getOrigin();
+                        return this->getVector ( this->to_vector3i ( p ) ) + this->getOrigin();
                 }
 
                 Vector3d getVector ( const Vector3i& p ) const
@@ -208,12 +209,12 @@ namespace mi4
 
                 float getLength ( const Vector3s& v ) const
                 {
-                        return  this->getLength ( this->to_vector3i(v));			
+                        return  this->getLength ( this->to_vector3i ( v ) );
                 }
 
                 float getLengthSquared ( const Point3i& v ) const
-		{
-			return static_cast<float> ( this->getVector(v).squaredNorm());
+                {
+                        return static_cast<float> ( this->getVector ( v ).squaredNorm() );
                 }
 
                 bool
@@ -226,8 +227,8 @@ namespace mi4
                         const auto& bmin = this->getMin();
                         const auto& bmax = this->getMax();
 
-			return p.x() == bmin.x() || p.y() == bmin.y() || p.z() == bmin.z() ||
-			       p.x() == bmax.x() || p.y() == bmax.y() || p.z() == bmax.z() ;
+                        return p.x() == bmin.x() || p.y() == bmin.y() || p.z() == bmin.z() ||
+                               p.x() == bmax.x() || p.y() == bmax.y() || p.z() == bmax.z() ;
                 }
 
 
@@ -254,9 +255,10 @@ namespace mi4
                 }
 
         private:
-		inline Vector3i to_vector3i( const Vector3s& v ) const {
-			return Vector3i(v.x(), v.y(), v.z());
-		}
+                inline Vector3i to_vector3i ( const Vector3s& v ) const
+                {
+                        return Vector3i ( v.x(), v.y(), v.z() );
+                }
 
                 inline int ceil_int ( const double v ) const
                 {
@@ -364,11 +366,7 @@ namespace mi4
                         Range* _range; // Pointer to the range.
                         Point3i _pos; // Current position.
                 };
-        private:
-                Range ( const Range& range ) = delete;
-                void operator = ( const Range& range ) = delete;
-                Range ( Range&& range ) = delete;
-                void operator = ( Range&& range ) = delete;
+
         public:
                 explicit Range ( const Point3i& bmin = Point3i ( 0, 0, 0 ), const Point3i& bmax = Point3i ( 0, 0, 0 ) ) : _bmin ( bmin ), _bmax ( bmax )
                 {
@@ -378,6 +376,10 @@ namespace mi4
                 {
                         return;
                 }
+                Range ( const Range& range ) = default;
+                Range& operator = ( const Range& range ) = default;
+                Range ( Range&& range ) = default;
+                Range& operator = ( Range&& range ) = default;
                 ~Range ( void ) = default;
 
                 bool check ( void ) const
@@ -489,9 +491,10 @@ namespace mi4
 
                 VolumeData<T>& fill ( const T& value )
                 {
-                        for ( const auto & p : Range( this->getInfo() ) ) {
+                        for ( const auto& p : Range ( this->getInfo() ) ) {
                                 this->set ( p, value );
                         }
+
                         return *this;
                 }
 
@@ -560,24 +563,30 @@ namespace mi4
                 {
                         const auto& info = that.getInfo();
                         this->init ( info, true );
-                        for ( const auto && p : Range( info )){
+
+                        for ( const auto&& p : Range ( info ) ) {
                                 this->set ( p, that.get ( p ) );
                         }
+
                         return true;
                 }
 
                 bool allocate ( void )
                 {
-			const auto& size = this->_info.getSize();
+                        const auto& size = this->_info.getSize();
+
                         if ( ! this->isReadable() ) {
                                 this->_isReadable = false;
                                 this->_data.assign ( size.z(), std::vector<std::vector<T> > ( size.y(), std::vector<T> ( size.x(), T() ) ) );
+
                                 if ( this->_data.size() != static_cast<size_t> ( size.z() ) ) {
                                         std::cerr << " volume data allocation failed" << std::endl;
                                         return false;        // when allocation is failed.
                                 }
+
                                 this->_isReadable = true;
                         }
+
                         return true;
                 }
 
@@ -585,7 +594,7 @@ namespace mi4
                 {
                         this->_isReadable = false;
                         this->_data.erase ( this->_data.begin(), this->_data.end() );
-			return true;
+                        return true;
                 }
 
                 bool isReadable ( void ) const
@@ -596,18 +605,22 @@ namespace mi4
                 bool open ( const std::string& filename )
                 {
                         std::ifstream fin ( filename.c_str() );
+
                         if ( !fin ) {
                                 return false;
                         }
+
                         return this->read ( fin );
                 }
 
                 bool save ( const std::string& filename )
                 {
                         std::ofstream fout ( filename.c_str() );
+
                         if ( !fout ) {
                                 return false;
                         }
+
                         return this->write ( fout );
                 }
 
@@ -627,8 +640,9 @@ namespace mi4
                         const Point3i& size = this->getInfo().getSize();
 
                         for ( int z = 0 ; z < size.z() ; ++z ) {
-				std::vector<T> buffer ( size.x() * size.y(), T() );
-                                if ( !fin.read ( ( char* ) & ( buffer[0] ), buffer.size() * sizeof(T) ) ) {
+                                std::vector<T> buffer ( size.x() * size.y(), T() );
+
+                                if ( !fin.read ( ( char* ) & ( buffer[0] ), buffer.size() * sizeof ( T ) ) ) {
                                         std::cerr << "reading data failed." << std::endl;
                                         return false;
                                 }
@@ -639,48 +653,56 @@ namespace mi4
                                         }
                                 }
                         }
+
                         return fin.good();
                 }
 
                 bool write ( std::ofstream& fout )
                 {
                         const auto& size = this->getInfo().getSize();
+
                         if ( ! this->isReadable() ) {
                                 std::cerr << "volume data is not readable." << std::endl;
                                 return false;
                         }
+
                         if ( !fout ) {
                                 std::cerr << "the file cannot be open." << std::endl;
                                 return false;
                         }
+
                         for ( int z = 0 ; z < size.z() ; ++z ) {
-				const auto bufSize = sizeof ( T ) * size.x() * size.y();
-				std::vector<T> buf;
-				buf.reserve(size.x()*size.y());
+                                const auto bufSize = sizeof ( T ) * size.x() * size.y();
+                                std::vector<T> buf;
+                                buf.reserve ( size.x()*size.y() );
 
                                 for ( int y = 0 ; y < size.y() ; ++y ) {
                                         for ( int x = 0 ; x < size.x() ; ++x )  {
-                                                buf.push_back( this->at ( x, y, z ) );
+                                                buf.push_back ( this->at ( x, y, z ) );
                                         }
                                 }
+
                                 if ( !fout.write ( ( char* ) ( &buf[0] ), bufSize ) ) {
                                         std::cerr << "writing data failed." << std::endl;
                                         return false;
                                 }
                         }
 
-                      return fout.good();
+                        return fout.good();
                 }
 
                 VolumeData<T> clip ( const Point3i& bmin, const Point3i& bmax ) const
                 {
                         VolumeData<T> result ( VolumeInfo ( bmax - bmin + Point3i ( 1, 1, 1 ) ) );
+
                         for ( const auto& p : Range ( result.getInfo() ) ) {
                                 if ( !this->getInfo().isValid ( bmin + p ) ) {
                                         continue;
                                 }
+
                                 result.set ( p, this->get ( bmin + p ) );
                         }
+
                         return std::move ( result );
                 }
         private:

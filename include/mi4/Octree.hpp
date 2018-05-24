@@ -181,7 +181,7 @@ namespace mi4
                                         for ( int i = 0 ; i < NUM_CHILDREN ; ++i ) {
                                                 result += this->child ( i ).count ( value, dimension / 2 );
                                         }
-                              }
+                                }
 
                                 return result;
                         }
@@ -200,7 +200,8 @@ namespace mi4
                                                         return false;        // different node.
                                                 }
                                         }
-					this->value() = this->child ( 0 ).value();
+
+                                        this->value() = this->child ( 0 ).value();
                                         this->_child.release(); // delete node.
                                         return true;
                                 }
@@ -227,7 +228,7 @@ namespace mi4
                                                 if ( ! this->child ( i ).write ( fout, emptyValue ) ) {
                                                         return false;
                                                 }
-					}
+                                        }
                                 } else if ( type == OCTREE_LEAF ) {
                                         return fout.write ( ( char* ) ( & ( this->value() ) ), sizeof ( T ) ).good();
                                 }
@@ -250,11 +251,12 @@ namespace mi4
                                         return fin.read ( ( char* ) ( &this->value() ), sizeof ( T ) ).good();
                                 } else if ( type == OCTREE_INTERMEDIATE ) {
                                         this->create_children();
+
                                         for ( int i = 0 ; i < NUM_CHILDREN ; ++i ) {
                                                 if ( !this->child ( i ).read ( fin, emptyValue ) ) {
                                                         return false;
                                                 }
-					}
+                                        }
 
                                         return true;
                                 } else {

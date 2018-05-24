@@ -14,11 +14,11 @@ namespace mi4
                 GLuint _fbo; // frame buffer object
                 GLuint _cbo; //   +-- color buffer objcet
                 GLuint _rbo; //   +-- render buffer object
-	private:
-		FrameBufferObject ( const FrameBufferObject& that) = delete;
-		FrameBufferObject ( FrameBufferObject&& that) = delete;
-		void operator = ( const FrameBufferObject& that) = delete;
-		void operator = ( FrameBufferObject&& that) = delete;
+        private:
+                FrameBufferObject ( const FrameBufferObject& that ) = delete;
+                FrameBufferObject ( FrameBufferObject&& that ) = delete;
+                void operator = ( const FrameBufferObject& that ) = delete;
+                void operator = ( FrameBufferObject&& that ) = delete;
         public:
                 explicit FrameBufferObject ( const int width, const int height ) : _width ( width ), _height ( height )
                 {

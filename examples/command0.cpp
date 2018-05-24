@@ -44,7 +44,7 @@ ExampleProgram::init ( const  mi4::Argument& arg )
                 return false;
         }
 
-        this->getAttributeSet().print(std::cerr);
+        this->getAttributeSet().print ( std::cerr );
 
         return true;
 }

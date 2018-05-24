@@ -81,15 +81,16 @@ namespace mi4
                 void operator = ( const Argument& ) = delete;
                 void operator = ( Argument&& ) = delete;
         public:
-		/**
-		 * @param[in] argc the number of arguments. use argc in main(). 
-		 * @param[out] argv the arguments. use argv in main(). 
-		 */
+                /**
+                 * @param[in] argc the number of arguments. use argc in main().
+                 * @param[out] argv the arguments. use argv in main().
+                 */
                 explicit Argument ( int argc = 0, char** argv = NULL )
                 {
                         for ( int i = 0 ; i < argc ; ++i ) {
                                 this->add ( argv[i] );
                         }
+
                         return;
                 }
                 ~Argument ( void ) = default;
@@ -665,7 +666,7 @@ namespace mi4
 
                 bool parse ( const Argument& arg ) const
                 {
-                        for ( auto && attr : this->_attrs ) {
+                        for ( auto&& attr : this->_attrs ) {
                                 if ( !attr->parse ( arg ) ) {
                                         return false;
                                 }
@@ -676,7 +677,7 @@ namespace mi4
 
                 ArrayNumericAttribute<T>& setMin ( const T min0 )
                 {
-                        for ( auto && attr : this->_attrs ) {
+                        for ( auto&& attr : this->_attrs ) {
                                 attr->setMin ( min0 );
                         }
 
@@ -684,7 +685,7 @@ namespace mi4
                 }
                 ArrayNumericAttribute<T>& setMax ( const T max0 )
                 {
-                        for ( auto && attr : this->_attrs ) {
+                        for ( auto&& attr : this->_attrs ) {
                                 attr->setMax ( max0 );
                         }
 
@@ -692,7 +693,7 @@ namespace mi4
                 }
                 ArrayNumericAttribute<T>& setDefaultValue ( const T default0 )
                 {
-                        for ( auto && attr : this->_attrs ) {
+                        for ( auto&& attr : this->_attrs ) {
                                 attr->setDefaultValue ( default0 );
                         }
 
@@ -700,7 +701,7 @@ namespace mi4
                 }
                 ArrayNumericAttribute<T>& setOutRangeRejected ( void )
                 {
-                        for ( auto && attr : this->_attrs ) {
+                        for ( auto&& attr : this->_attrs ) {
                                 attr->setOutRangeRejected();
                         }
 
@@ -708,7 +709,7 @@ namespace mi4
                 }
                 ArrayNumericAttribute<T>& setMandatory ( void )
                 {
-                        for ( auto && attr : this->_attrs ) {
+                        for ( auto&& attr : this->_attrs ) {
                                 attr->setMandatory();
                         }
 
@@ -729,7 +730,7 @@ namespace mi4
                 {
                         std::string str;
 
-                        for ( auto && attr : this->_attrs ) {
+                        for ( auto&& attr : this->_attrs ) {
                                 str.append ( attr->toString() ).append ( " " );
                         }
 
@@ -828,7 +829,7 @@ namespace mi4
 
                 void printError ( void )
                 {
-                        for ( auto && iter : this->_attr ) {
+                        for ( auto&& iter : this->_attr ) {
                                 iter->printError();
                         }
 
@@ -851,14 +852,14 @@ namespace mi4
 
                 void print_usage ( void )
                 {
-                        for ( auto && iter : this->_attr ) {
+                        for ( auto&& iter : this->_attr ) {
                                 iter->print_usage();
                         }
                 }
 
                 void print ( std::ostream& out )
                 {
-                        for ( auto && iter : this->_attr ) {
+                        for ( auto&& iter : this->_attr ) {
                                 iter->print ( out );
                         }
                 }
@@ -880,7 +881,7 @@ namespace mi4
                 ProgramTemplate ( ProgramTemplate&& ) = delete;
                 void operator = ( ProgramTemplate&& ) = delete;
         public:
-                explicit ProgramTemplate ( const std::string& cmdStr = "a.out" ) : _cmdStr ( cmdStr ), _isDebugModeOn ( false )
+                explicit ProgramTemplate ( const std::string& cmdStr = "a.out" ) : _cmdStr ( cmdStr ), _attr ( new AttributeSet() ), _isDebugModeOn ( false )
                 {
                         return;
                 }
@@ -893,7 +894,7 @@ namespace mi4
 
                 AttributeSet& getAttributeSet ( void )
                 {
-                        return *(this->_attr);
+                        return * ( this->_attr );
                 }
 
                 bool isDebugMode ( void ) const
@@ -940,7 +941,7 @@ namespace mi4
                 }
         private:
                 std::string  _cmdStr;
-		std::unique_ptr<AttributeSet> _attr;
+                std::unique_ptr<AttributeSet> _attr;
                 bool _isDebugModeOn;
         };//class ProgramTemplate
 }//namespace mi

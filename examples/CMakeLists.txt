@@ -1,10 +1,9 @@
-if (glfw3_FOUND)
+if (glfw3_FOUND AND GLEW_FOUND)
 	ADD_EXECUTABLE(fbo0 fbo0.cpp)
-	#TARGET_LINK_LIBRARIES(fbo0 ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES})
-	TARGET_LINK_LIBRARIES(fbo0 glfw GLEW ${OPENGL_LIBRARIES})
+	TARGET_LINK_LIBRARIES(fbo0 glfw ${GLEW_LIBRARIES} ${OPENGL_LIBRARIES})
 else ()
 	message("fbo0 skipped.")
-endif(glfw3_FOUND)
+endif()
 
 ADD_EXECUTABLE(command0 command0.cpp)
 ADD_EXECUTABLE(command1 command1.cpp)

@@ -47,22 +47,28 @@ namespace mi4
                         return this->_token.at ( i );
                 }
 
-		std::string toString ( void ) const {
-			std::string result;
-			for ( const auto s : this->_token ) {
-				if ( result.length() != 0 ) result.append(" ");
-				result.append(s);
-			}
+                std::string toString ( void ) const
+                {
+                        std::string result;
 
-			return result;
-		}
+                        for ( const auto s : this->_token ) {
+                                if ( result.length() != 0 ) {
+                                        result.append ( " " );
+                                }
+
+                                result.append ( s );
+                        }
+
+                        return result;
+                }
         private:
                 std::vector<std::string> _token;
         };
 
-	int fuzzy_compare ( const std::string& str0, const std::string& str1 ) {
-		return Tokenizer(str0).toString().compare(Tokenizer(str1).toString());
-	}
+        int fuzzy_compare ( const std::string& str0, const std::string& str1 )
+        {
+                return Tokenizer ( str0 ).toString().compare ( Tokenizer ( str1 ).toString() );
+        }
 
 
 };

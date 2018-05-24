@@ -175,7 +175,10 @@ namespace mi4
                                                 isPolygonized = true;
                                         }
                                 }
-				if ( isPolygonized ) this->polygonize_cell ( cell, iso, mesh );
+
+                                if ( isPolygonized ) {
+                                        this->polygonize_cell ( cell, iso, mesh );
+                                }
                         }
 
                         return mesh;
@@ -229,7 +232,7 @@ namespace mi4
 
                         for ( int i =  mc_colidx[tableid] ; i < mc_colidx[tableid + 1] ; i += 3 ) {
                                 ++numTriangles;
-                                std::vector<int> idx ( 3, 0 );
+                                std::vector<size_t> idx ( 3, 0 );
                                 // check invert
                                 idx[0] = mesh.addPoint ( ep[ mc_idxtable[i  ] ] );
                                 idx[1] = mesh.addPoint ( ep[ mc_idxtable[i + 1] ] );

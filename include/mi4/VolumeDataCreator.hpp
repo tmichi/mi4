@@ -38,7 +38,6 @@ namespace mi4
                                 return this->_value;
                         }
                 };
-		
                 std::unique_ptr<Impl> _impl;
         private:
                 VolumeDataCreator ( const VolumeDataCreator& that ) = delete;
@@ -46,15 +45,15 @@ namespace mi4
                 VolumeDataCreator& operator = ( const VolumeDataCreator& that ) = delete;
                 VolumeDataCreator& operator = ( VolumeDataCreator&& that ) = delete;
         public:
-		/** 
-		 * @brief Constructor. 
-		 * @param [in] data Reference to the volume data.
-		 * @param [in] value Initial value to be filled.
-		 */
+                /**
+                 * @brief Constructor.
+                 * @param [in] data Reference to the volume data.
+                 * @param [in] value Initial value to be filled.
+                 */
                 explicit VolumeDataCreator ( VolumeData<T>& data, const T value = T() ) : _impl ( new Impl ( data, value ) )
                 {
                         this->fill();
-			return;
+                        return;
                 }
 
                 ~VolumeDataCreator ( void ) = default;
@@ -64,7 +63,7 @@ namespace mi4
                         this->_impl->value() = value;
                         return *this;
                 }
-		
+
                 T getValue ( void ) const
                 {
                         return this->_impl->value();
@@ -86,6 +85,7 @@ namespace mi4
                                 if ( info.getLengthSquared ( d )  > radSqr ) {
                                         continue;
                                 }
+
                                 this->fillPoint ( p + d );
                         }
 
@@ -101,15 +101,16 @@ namespace mi4
 
                         return *this;
                 }
-		/**
-		 * Fill specified range by the current value 
-		 *
-		 */
+                /**
+                 * Fill specified range by the current value
+                 *
+                 */
                 inline VolumeDataCreator<T>& fillBlock ( const Point3i& bmin,  const Point3i& bmax )
                 {
                         for ( const auto& p : mi4::Range ( bmin, bmax ) ) {
                                 this->fillPoint ( p );
                         }
+
                         return *this;
                 }
         };

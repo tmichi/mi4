@@ -4,7 +4,7 @@
 #include <iostream>
 int main ( int argc, char** argv )
 {
-	mi4::Timer timer ("distance");
+        mi4::Timer timer ( "distance" );
         mi4::VolumeData<char> binary ( mi4::Point3i ( 512, 512, 512 ) );
         mi4::VolumeDataCreator<char> creator ( binary, 1 );
         creator.setValue ( 0 );

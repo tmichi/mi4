@@ -1,5 +1,6 @@
 #ifndef MI4_COLOR_MAPPER_HPP
 #define MI4_COLOR_MAPPER_HPP 1
+
 #include <deque>
 #include <tuple>
 #include <algorithm>
@@ -32,10 +33,11 @@ namespace mi4
 
                 void sort ( void )
                 {
-                        auto comp_fn = [] ( const value_type & a, const value_type & b ) {
+                        std::sort ( this->_values.begin(), this->_values.end(),
+                        [] ( const value_type & a, const value_type & b ) {
                                 return std::get<0> ( a ) < std::get<0> ( b );
-                        };
-                        std::sort ( this->_values.begin(), this->_values.end(), comp_fn );
+                        }
+                                  );
                         return;
                 }
                 void add ( const float value, const float r, const float g, const float b )
@@ -53,14 +55,14 @@ namespace mi4
                                 return;
                         }
 
-                        auto comp_fn = [] ( const value_type & a, const value_type & b ) {
-                                return std::get<0> ( a ) < std::get<0> ( b );
-                        };
-
                         const auto& values = this->_values;
                         const value_type v = std::make_tuple ( value, 0.0f, 0.0f, 0.0f );
-                        const auto upper = std::upper_bound ( values.cbegin(), values.cend(), v, comp_fn );
-
+                        const auto upper = std::upper_bound ( values.cbegin(), values.cend(), v,
+                        [] ( const value_type & a, const value_type & b ) {
+                                return std::get<0> ( a ) < std::get<0> ( b );
+                        }
+				);
+			
                         if ( upper == values.begin() ) {
                                 r = std::get<1> ( *upper );
                                 g = std::get<2> ( *upper );
@@ -100,11 +102,38 @@ namespace mi4
                         return;
                 }
 
-		std::tuple<int, int, int> get ( const float value) const {
-			int r, g, b;
-			const_cast<ColorMapper*>(this)->convert(value, r, g, b);
-			return std::make_tuple(r, g, b);
-		}
+                std::tuple<int, int, int> get ( const float value ) const
+                {
+                        int r, g, b;
+                        const_cast<ColorMapper*> ( this )->convert ( value, r, g, b );
+                        return std::make_tuple ( r, g, b );
+                }
+                /*
+                		std::tuple<float, float, float> get ( const float value ) const {
+                                        const auto& values = this->_values;
+                                        if ( values.size() == 0 ) return std::make_tuple(0.0f, 0.0f, 0.0f);
+                                        const value_type v = std::make_tuple ( value, 0.0f, 0.0f, 0.0f );
+                                        const auto upper = std::upper_bound ( values.cbegin(), values.cend(), v, [] ( const value_type & a, const value_type & b ) {return std::get<0> ( a ) < std::get<0> ( b );});
+
+                			float r,g,b;
+                                        if ( upper == values.begin() ) {
+                				r = std::get<1> ( *upper );
+                                                g = std::get<2> ( *upper );
+                                                b = std::get<3> ( *upper );
+                                        } else if ( upper == values.end() ) {
+                                                r = std::get<1> ( values.back() );
+                                                g = std::get<2> ( values.back() );
+                                                b = std::get<3> ( values.back() );
+                                        } else {
+                                                const auto lower = upper - 1 ;
+                                                const float t = ( value - std::get<0> ( *lower ) ) / ( std::get<0> ( *upper ) - std::get<0> ( *lower ) );
+                                                r = ( 1.0f - t ) * std::get<1> ( *lower ) + t * std::get<1> ( *upper );
+                                                g = ( 1.0f - t ) * std::get<2> ( *lower ) + t * std::get<2> ( *upper );
+                                                b = ( 1.0f - t ) * std::get<3> ( *lower ) + t * std::get<3> ( *upper );
+                                        }
+                			return std::make_tuple(r,g,b);
+                		}
+                */
         };
 }
 #endif

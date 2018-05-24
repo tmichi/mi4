@@ -1,12 +1,13 @@
 #ifndef MARCHIING_CUBES_HPP
 #define MARCHIING_CUBES_HPP 1
+
 #include <tuple>
 #include <mi4/Kdtree.hpp>
 #include <mi4/VolumeData.hpp>
 #include <mi4/Mesh.hpp>
 namespace mi4
 {
-	typedef std::tuple<mi4::Point3d, double, double> cell_type;// 3d point, isovalue threshold.
+        typedef std::tuple<mi4::Point3d, double, double> cell_type;// 3d point, isovalue threshold.
 
         int polygonize_cell ( std::vector <cell_type>& cell, mi4::Mesh& mesh, std::vector<float>& isovalue, const double iso_eps = 1.0e-10 )
         {
@@ -20,6 +21,7 @@ namespace mi4
                  * (y) |       |   |       |   |       |
                  *    (3)-[2]-(2) [10]---[11] (6)-[6]-(7)
                  */
+
                 /*
                  * Vertex indices to compute edge points.
                  * Edge point i exists between vertices (2*i), (2*i+1)
@@ -29,6 +31,7 @@ namespace mi4
                         4, 5, 5, 7, 7, 6, 6, 4,
                         0, 4, 1, 5, 2, 6, 3, 7
                 };
+
                 /*
                  * Start point of vertex sequence for triangluation of table i.
                  */
@@ -322,112 +325,125 @@ namespace mi4
 
                 unsigned char tableid = 0x00;
                 int numTriangles = 0;
-		
-                for ( int i = 0 ; i < 8 ; ++i ) {
-			auto& c = cell.at(i);
-			auto& voxel_value = std::get<1>(c);
-			auto& iso_value  = std::get<2>(c);
-			if ( std::fabs(voxel_value - iso_value ) < iso_eps ) {
-				voxel_value = iso_value + iso_eps ;
-			}
 
-			if ( iso_value <=  voxel_value ) {
-				tableid += ( 0x01 << i );
+                for ( int i = 0 ; i < 8 ; ++i ) {
+                        auto& c = cell.at ( i );
+                        auto& voxel_value = std::get<1> ( c );
+                        auto& iso_value  = std::get<2> ( c );
+
+                        if ( std::fabs ( voxel_value - iso_value ) < iso_eps ) {
+                                voxel_value = iso_value + iso_eps ;
+                        }
+
+                        if ( iso_value <=  voxel_value ) {
+                                tableid += ( 0x01 << i );
                         }
                 }
+
                 if ( tableid != 0x00 && tableid != 0xFF ) {
-			Vector3d ep[12];
-			double iso[12];
-			for ( int i = 0 ; i < 12 ; i++ ) {
+                        Vector3d ep[12];
+                        double iso[12];
 
-				const auto& id0 = mc_edtable[ 2 * i + 0];
-				const auto& id1 = mc_edtable[ 2 * i + 1];
+                        for ( int i = 0 ; i < 12 ; i++ ) {
 
-				const auto& c0 = cell.at(id0);
-				const auto& c1 = cell.at(id1);
-				
-				const auto& v0 = std::get<1>(c0);
-				const auto& v1 = std::get<1>(c1);
-				
-				if ( ( ( tableid >> id0 ) & 0x01 )  == ( ( tableid >> id1 ) & 0x01 ) ) {
-					continue;
-				}
-				
-				const auto& iso0 = std::get<2>(c0);
-				const auto& iso1 = std::get<2>(c1);
-				///@todo check 0 division 符号が逆転しているので，交点は存在
-				const auto t = - ( v0 - iso0 )  / ( ( v1 - v0 ) - ( iso1 - iso0 ) ) ;	 
-				ep[i]  = ( 1.0 - t ) * std::get<0>(c0) + t * std::get<0>(c1);
-				iso[i] = ( 1.0 - t ) * v0 + t * v1;
-			}
-			
-			for ( int i =  mc_colidx[tableid] ; i < mc_colidx[tableid + 1] ; i += 3 ) {
-				++numTriangles;
-				std::vector<int> index;
-				for( int j = 0 ; j < 3 ; ++j ) {
-					index.push_back(mesh.addPoint(ep[ mc_idxtable[i+j ] ] ));
-					isovalue.push_back(static_cast<float>(iso[mc_idxtable[i+j] ]));
-				}
-				mesh.addFace(index);
-			}
-		}
-		return numTriangles;
-	}
-	
-	
-		
-	template<typename T, typename S>
+                                const auto& id0 = mc_edtable[ 2 * i + 0];
+                                const auto& id1 = mc_edtable[ 2 * i + 1];
+
+                                const auto& c0 = cell.at ( id0 );
+                                const auto& c1 = cell.at ( id1 );
+
+                                const auto& v0 = std::get<1> ( c0 );
+                                const auto& v1 = std::get<1> ( c1 );
+
+                                if ( ( ( tableid >> id0 ) & 0x01 )  == ( ( tableid >> id1 ) & 0x01 ) ) {
+                                        continue;
+                                }
+
+                                const auto& iso0 = std::get<2> ( c0 );
+                                const auto& iso1 = std::get<2> ( c1 );
+                                ///@todo check 0 division 符号が逆転しているので，交点は存在
+                                const auto t = - ( v0 - iso0 )  / ( ( v1 - v0 ) - ( iso1 - iso0 ) ) ;
+                                ep[i]  = ( 1.0 - t ) * std::get<0> ( c0 ) + t * std::get<0> ( c1 );
+                                iso[i] = ( 1.0 - t ) * v0 + t * v1;
+                        }
+
+                        for ( int i =  mc_colidx[tableid] ; i < mc_colidx[tableid + 1] ; i += 3 ) {
+                                ++numTriangles;
+                                std::vector<int> index;
+
+                                for ( int j = 0 ; j < 3 ; ++j ) {
+                                        index.push_back ( mesh.addPoint ( ep[ mc_idxtable[i + j ] ] ) );
+                                        isovalue.push_back ( static_cast<float> ( iso[mc_idxtable[i + j] ] ) );
+                                }
+
+                                mesh.addFace ( index );
+                        }
+                }
+
+                return numTriangles;
+        }
+
+
+
+        template<typename T, typename S>
         mi4::Mesh anisosurf ( const mi4::VolumeData<T>& inputData, const mi4::VolumeData<S>& isoData, std::vector<float>& isovalue, const double iso_eps = 1.0e-10 )
         {
                 mi4::Mesh mesh;
                 const auto& info = inputData.getInfo();
                 mi4::Range range ( info.getMin(), info.getMax() - mi4::Point3i ( 1, 1, 1 ) );
-		
-		std::vector<float> intersection;
+
+                std::vector<float> intersection;
+
                 for ( const auto& p : range ) {
                         std::vector<cell_type > cell;
                         cell.reserve ( 8 );
+
                         for ( const auto& dp : mi4::Range ( mi4::Point3i ( 0, 0, 0 ), mi4::Point3i ( 1, 1, 1 ) ) ) {
                                 const auto np = p + dp ;
-                                cell.push_back ( std::make_tuple ( info.getPointInSpace ( np ), inputData.get(np), isoData.get(np) ) );
+                                cell.push_back ( std::make_tuple ( info.getPointInSpace ( np ), inputData.get ( np ), isoData.get ( np ) ) );
                         }
+
                         polygonize_cell ( cell, mesh, intersection, iso_eps );
                 }
 
-		// stitch
-		Mesh resultMesh;
-		typedef mi4::IndexedVector<Vector3d> VertexType;
-		std::vector<int> newId ( mesh.getNumVertices(), -1 ) ;
-		std::vector< VertexType > points;
-		
-		for ( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
-			points.push_back ( VertexType ( mesh.getPosition ( i ), i ) ) ;
-		}
-		
-		mi4::Kdtree<VertexType> kdtree ( points );
-		
-		for ( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
-			if ( newId[i] != -1 ) { // skip when the vertex is already registered.
-				continue;
-			}
-			
-			std::list<VertexType> result;
-			kdtree.find ( VertexType ( mesh.getPosition ( i ), 0 ), 1.0e-10, result );
-			const int id = resultMesh.addPoint ( mesh.getPosition ( i ) ) ;
-			isovalue.push_back(intersection[i]);
-			for ( auto& i : result ) {
-				newId[ i.id() ] = id;
-			}
-		}
-		
-		for ( int i = 0 ; i < mesh.getNumFaces() ; ++i ) {
-			auto  index = mesh.getFaceIndices ( i ) ;
-			for ( auto&& idx : index){
-				idx = newId.at( static_cast<size_t>(idx) );
-			}
-			resultMesh.addFace ( index );
-		}
-		return resultMesh;
+                // stitch
+                Mesh resultMesh;
+                typedef mi4::IndexedVector<Vector3d> VertexType;
+                std::vector<int> newId ( mesh.getNumVertices(), -1 ) ;
+                std::vector< VertexType > points;
+
+                for ( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
+                        points.push_back ( VertexType ( mesh.getPosition ( i ), i ) ) ;
+                }
+
+                mi4::Kdtree<VertexType> kdtree ( points );
+
+                for ( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
+                        if ( newId[i] != -1 ) { // skip when the vertex is already registered.
+                                continue;
+                        }
+
+                        std::list<VertexType> result;
+                        kdtree.find ( VertexType ( mesh.getPosition ( i ), 0 ), 1.0e-10, result );
+                        const int id = resultMesh.addPoint ( mesh.getPosition ( i ) ) ;
+                        isovalue.push_back ( intersection[i] );
+
+                        for ( auto& i : result ) {
+                                newId[ i.id() ] = id;
+                        }
+                }
+
+                for ( int i = 0 ; i < mesh.getNumFaces() ; ++i ) {
+                        auto  index = mesh.getFaceIndices ( i ) ;
+
+                        for ( auto&& idx : index ) {
+                                idx = newId.at ( static_cast<size_t> ( idx ) );
+                        }
+
+                        resultMesh.addFace ( index );
+                }
+
+                return resultMesh;
         }
 };
 #endif// MARCHIING_CUBES_HPP

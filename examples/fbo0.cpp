@@ -1,11 +1,12 @@
 #include <vector>
 #include <iostream>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <mi4/OffScreenRenderer.hpp>
 #include <mi4/FrameBufferObject.hpp>
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+// Use https://github.com/nothings/stb/blob/master/stb_image_write.h
+#define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "stb/stb_image_write.h"
 
 int main ( int argc, char** argv )
@@ -15,6 +16,7 @@ int main ( int argc, char** argv )
                 return -1;
         }
 
+        // Offscreen
         ::glfwWindowHint ( GLFW_VISIBLE, 0 );
         const int width  = 64;
         const int height = 64;

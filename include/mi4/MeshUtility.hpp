@@ -51,7 +51,7 @@ namespace mi4
                         fout << "property list uchar int vertex_index" << std::endl;
                         fout << "end_header" << std::endl;
 
-                        for ( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
+                        for ( size_t i = 0 ; i < mesh.getNumVertices() ; ++i ) {
                                 Eigen::Vector3d v = mesh.getPosition ( i );
 
                                 if ( isBinary ) {
@@ -68,8 +68,8 @@ namespace mi4
                                 }
                         }
 
-                        for ( int i = 0 ; i < mesh.getNumFaces() ; ++i ) {
-                                std::vector<int> idx = mesh.getFaceIndices ( i );
+                        for ( size_t i = 0 ; i < mesh.getNumFaces() ; ++i ) {
+                                std::vector<size_t> idx = mesh.getFaceIndices ( i );
 
                                 if ( isBinary ) {
                                         unsigned char n = static_cast<unsigned char> ( idx.size() );
@@ -104,55 +104,44 @@ namespace mi4
                 {
                         Mesh resultMesh;
 
-                        typedef IndexedVector<Vector3d> VertexType;
-                        std::vector<int> newId ( mesh.getNumVertices(), -1 ) ;
+                        typedef IndexedVector<Vector3d, size_t> VertexType;
+                        std::vector<size_t> newId ( mesh.getNumVertices(), std::numeric_limits<size_t>::max() ) ;
+                        std::vector<bool> visited ( mesh.getNumVertices(), false);
                         std::vector< VertexType > points;
 
-                        for ( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
+                        for ( size_t i = 0 ; i < mesh.getNumVertices() ; ++i ) {
                                 points.push_back ( VertexType ( mesh.getPosition ( i ), i ) ) ;
                         }
 
                         Kdtree<VertexType> kdtree ( points );
 
-                        for ( int i = 0 ; i < mesh.getNumVertices() ; ++i ) {
-                                if ( newId[i] != -1 ) {
+                        for ( size_t i = 0 ; i < mesh.getNumVertices() ; ++i ) {
+                                if ( visited[i]) {
                                         continue;
                                 }
-
+				visited[i] = true;
                                 std::list<VertexType> result;
                                 kdtree.find ( VertexType ( mesh.getPosition ( i ), 0 ), eps, result );
-                                const int id = resultMesh.addPoint ( mesh.getPosition ( i ) ) ;
+                                const size_t id = resultMesh.addPoint ( mesh.getPosition ( i ) ) ;
 
                                 for ( auto& i : result ) {
                                         newId[ i.id() ] = id;
+					visited[i.id()] = true;
                                 }
                         }
 
-                        for ( int i = 0 ; i < mesh.getNumFaces() ; ++i ) {
-                                std::vector<int> index = mesh.getFaceIndices ( i ) ;
+                        for ( size_t i = 0 ; i < mesh.getNumFaces() ; ++i ) {
+                                std::vector<size_t> index = mesh.getFaceIndices ( i ) ;
 
                                 for ( size_t j = 0 ; j < index.size() ; ++j ) {
-                                        const int id = index[j];
+                                        const auto id = index[j];
                                         index[j] = newId [ id ];
                                 }
-
                                 resultMesh.addFace ( index );
                         }
 
                         return resultMesh;
                 }
-
-                /**
-                 * @brief decompose mesh into connected components.
-                 * @param [in] mesh Mesh object.
-                 * @param [out] assy Assembly mesh object.
-                 */
-                /*                static bool decompose ( const Mesh& mesh, AssemblyMesh &assy ) {
-                                        MeshConnectedComponentExtractor extractor( mesh );
-                                        extractor.extract( assy ) ;
-                                        return true;
-                                }
-                */
         };
 }
 #endif // MI_UTILITY_HPP

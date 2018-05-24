@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 
 namespace mi4
@@ -28,7 +29,7 @@ namespace mi4
                 virtual ~XmlNode ( void ) = default;
                 virtual XmlNodeType getType ( void ) const = 0;
                 virtual bool isLeaf ( void ) const = 0;
-                virtual std::string toString ( const size_t = 0 ) const = 0;
+                virtual void write ( std::ostream& os, const size_t = 0 ) = 0;
         };
 
         class XmlText : public XmlNode
@@ -56,9 +57,9 @@ namespace mi4
                         return this->_text;
                 }
 
-                std::string toString ( const size_t indent = 0 ) const
+                void write ( std::ostream& os, const size_t indent = 0 )
                 {
-                        return std::string ( indent * 4, ' ' ).append ( this->getText() ).append ( "\n" );
+                        os << std::string ( indent * 4, ' ' ) << this->getText() << std::endl;
                 }
         private:
                 std::string _text;
@@ -101,7 +102,7 @@ namespace mi4
                 {
                         std::stringstream ss;
                         ss << value;
-                        this->_attributes[key] = ss.str();//std::to_string(value);//ss.str();
+                        this->_attributes[key] = ss.str();
                         return *this;
                 }
 
@@ -144,23 +145,34 @@ namespace mi4
 
                 std::string toString ( const size_t indent = 0 ) const
                 {
-                        auto& children = this->_children;
-                        std::string space ( indent * 4, ' ' );
-                        std::string str;
-                        str.append ( space ).append ( "<" ).append ( this->getName() );
+                        std::stringstream ss;
+                        const_cast<XmlElement*> ( this )->write ( ss, 0 );
+                        return ss.str();
+                }
+        private:
+                void write ( std::ostream& os, const size_t indent = 0 )
+                {
+                        os << std::string ( indent * 4, ' ' ) << "<" << this->getName() ;
 
                         for ( auto& iter : this->_attributes ) {
-                                str.append ( " " ).append ( iter.first ).append ( "=\"" ).append ( iter.second ).append ( "\"" );
+                                os << " " << iter.first << "=" << std::quoted ( iter.second );
                         }
 
-                        str.append ( ">" ).append("`\n" );
+                        auto& children = this->_children;
 
-                        for ( auto& iter : children ) {
-                                str.append ( iter->toString ( indent + 1 ) );
+                        if ( children.empty() ) {
+                                os << "/>" << std::endl;
+                        } else {
+                                os << ">" << std::endl;
+
+                                for ( auto& iter : children ) {
+                                        iter->write ( os, indent + 1 ) ;
+                                }
+
+                                os << std::string ( indent * 4, ' ' ) << "</" << this->getName() << ">" << std::endl;
                         }
 
-                        str.append ( space ).append ( "</" ).append ( this->getName() ).append ( ">").append("\n" );
-                        return str;
+                        return ;
                 }
         private:
                 std::string _name; // element name
@@ -190,7 +202,10 @@ namespace mi4
 
                 std::string toString ( void ) const
                 {
-                        return std::string ( "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" ).append("\n").append ( this->_root->toString() );
+                        std::stringstream ss;
+                        ss << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
+                        ss << this->_root->toString();
+                        return ss.str();
                 }
         private:
                 std::unique_ptr<XmlElement> _root;

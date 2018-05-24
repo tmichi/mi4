@@ -24,6 +24,7 @@
 
 #elif defined (__CYGWIN__)
 #include <unistd.h>
+
 #elif defined (__APPLE__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
@@ -236,7 +237,7 @@ namespace mi4
                         struct rusage rusage;
                         getrusage ( RUSAGE_SELF, &rusage );
                         peakMemory = static_cast<double> ( rusage.ru_maxrss );
-                        return peakMemory; //
+                        return peakMemory;
                 }
                 static std::vector<MacAddress> getMacAddresses ( void )
                 {

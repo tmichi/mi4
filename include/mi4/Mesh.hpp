@@ -18,7 +18,7 @@ namespace mi4
         private:
                 std::string _name;
                 std::vector<Eigen::Vector3d> _vertex; /// vertex position
-                std::vector<int> _index; /// triangles
+                std::vector<size_t> _index; /// triangles
         public:
                 void clone ( const Mesh& mesh )
                 {
@@ -29,25 +29,25 @@ namespace mi4
                         }
 
                         for ( int i = 0 ; i < mesh.getNumFaces() ; ++i ) {
-                                std::vector<int> index = mesh.getFaceIndices ( i );
-                                this->addFace ( index );
+                                
+                                this->addFace ( mesh.getFaceIndices ( i ) );
                         }
                 }
 
-                int addPoint ( const Eigen::Vector3d& p )
+                size_t addPoint ( const Eigen::Vector3d& p ) const 
                 {
-                        this->_vertex.push_back ( p );
-                        return static_cast<int> ( this->_vertex.size() - 1 );
+                        const_cast<Mesh*>(this)->_vertex.push_back ( p );
+                        return this->_vertex.size() - 1;
                 }
 
-                int addFace ( const std::vector<int>& fidx )
+                size_t addFace ( const std::vector<size_t>& fidx )
                 {
                         if ( fidx.size() != 3 ) {
-                                return -1;
+				std::cerr<<"only triangle is supported."<<std::endl;
+                                return 0;
                         }
-
                         this->_index.insert ( this->_index.end(), fidx.begin(), fidx.end() );
-                        return static_cast<int> ( this->_index.size() / 3 ) ; // ID
+                        return this->_index.size() / 3 ; // ID
                 }
 
                 void addName ( const std::string name = std::string ( "mesh" ) )
@@ -56,30 +56,28 @@ namespace mi4
                         return;
                 }
 
-                inline bool isValidFaceId ( const int faceid ) const
+                inline bool isValidFaceId ( const size_t faceid ) const
                 {
-                        return ( 0 <= faceid && faceid < this->getNumFaces() );
+                        return ( faceid < this->getNumFaces() );
                 }
 
-                inline bool isValidVertexId ( const int vertexid ) const
+                inline bool isValidVertexId ( const size_t vertexid ) const
                 {
-                        return ( 0 <= vertexid && vertexid < this->getNumVertices() );
+                        return ( vertexid < this->getNumVertices() );
                 }
 
-                inline std::vector<int> getFaceIndices ( const int faceid ) const
+                inline std::vector<size_t> getFaceIndices ( const size_t faceid ) const
                 {
-                        std::vector<int> idx ( 3, -1 );
-
+                        std::vector<size_t> idx;
                         if ( this->isValidFaceId ( faceid ) ) {
                                 for ( int i = 0 ; i < 3 ; i++ ) {
-                                        idx[i] = this->_index.at ( faceid * 3 + i );
+                                        idx.push_back( this->_index.at ( faceid * 3 + i ));
                                 }
                         }
-
                         return idx;
                 }
 
-                inline Eigen::Vector3d getPosition ( const int vertexid ) const
+                inline Eigen::Vector3d getPosition ( const size_t vertexid ) const
                 {
                         if ( this->isValidVertexId ( vertexid ) ) {
                                 return this->_vertex.at ( vertexid );
@@ -89,13 +87,13 @@ namespace mi4
                 }
 
 
-                Eigen::Vector3d getNormal ( const int faceid, bool normalize = true ) const
+                Eigen::Vector3d getNormal ( const size_t faceid, bool normalize = true ) const
                 {
                         if ( ! this->isValidFaceId ( faceid ) ) {
                                 return Eigen::Vector3d();
                         }
 
-                        std::vector<int> fidx = this->getFaceIndices ( faceid );
+                        auto fidx = this->getFaceIndices ( faceid );
                         Eigen::Vector3d v0 = this->getPosition ( fidx[0] );
                         Eigen::Vector3d v1 = this->getPosition ( fidx[1] ) - v0;
                         Eigen::Vector3d v2 = this->getPosition ( fidx[2] ) - v0;
@@ -115,12 +113,11 @@ namespace mi4
                 }
 
 
-                void setPosition ( const int vertexid, const Eigen::Vector3d& pos )
+                void setPosition ( const size_t vertexid, const Eigen::Vector3d& pos )
                 {
                         if ( this->isValidVertexId ( vertexid ) ) {
                                 this->_vertex.at ( vertexid ) = pos;
                         }
-
                         return;
                 };
                 void init ( void )
@@ -130,14 +127,14 @@ namespace mi4
                         return;
                 }
 
-                inline int getNumVertices ( void ) const
+                inline size_t getNumVertices ( void ) const
                 {
-                        return static_cast<int> ( this->_vertex.size() );
+                        return this->_vertex.size();
                 }
 
-                inline int getNumFaces ( void ) const
+                inline size_t getNumFaces ( void ) const
                 {
-                        return static_cast<int> ( this->_index.size() / 3 );
+                        return this->_index.size() / 3;
                 }
 
                 void
@@ -157,8 +154,8 @@ namespace mi4
 
                 void negateOrientation()
                 {
-                        for ( int i = 0 ; i < this->getNumFaces() ; ++i ) {
-                                int f0 = this->_index [ i * 3 + 0 ];
+                        for ( size_t i = 0 ; i < this->getNumFaces() ; ++i ) {
+                                size_t f0 = this->_index [ i * 3 + 0 ];
                                 this->_index[ i * 3 + 0 ] = this->_index [ i * 3 + 1];
                                 this->_index[ i * 3 + 1 ] = f0;
 
@@ -168,7 +165,7 @@ namespace mi4
 
                 double getArea ( const int faceId ) const
                 {
-                        std::vector<int> index = this->getFaceIndices ( faceId );
+                        std::vector<size_t> index = this->getFaceIndices ( faceId );
                         const Eigen::Vector3d p0 = this->getPosition ( index[0] );
                         const Eigen::Vector3d p1 = this->getPosition ( index[1] );
                         const Eigen::Vector3d p2 = this->getPosition ( index[2] );
