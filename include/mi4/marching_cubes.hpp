@@ -26,7 +26,7 @@ namespace mi4
                  * Vertex indices to compute edge points.
                  * Edge point i exists between vertices (2*i), (2*i+1)
                  */
-                static int mc_edtable[] = {
+                const static std::vector<int> mc_edtable = {
                         0, 1, 1, 3, 3, 2, 2, 0,
                         4, 5, 5, 7, 7, 6, 6, 4,
                         0, 4, 1, 5, 2, 6, 3, 7
@@ -36,7 +36,7 @@ namespace mi4
                  * Start point of vertex sequence for triangluation of table i.
                  */
 
-                static int mc_colidx[] = {
+                const static std::vector<int> mc_colidx = {
                         0, 0, 3, 6, 12, 15, 21, 33, 42, 45,
                         57, 63, 72, 78, 87, 96, 102, 105, 111, 123,
                         132, 144, 153, 168, 180, 198, 213, 228, 240, 255,
@@ -64,7 +64,7 @@ namespace mi4
                         2418, 2424, 2433, 2442, 2448, 2457, 2463, 2469, 2472, 2481,
                         2487, 2493, 2496, 2502, 2505, 2508, 2508
                 };
-                static int mc_idxtable[] = {
+                const static std::vector<int> mc_idxtable = {
                         /*0(00000000)*/
                         /*1(10000000)*/ 0, 3, 8,
                         /*2(01000000)*/ 1, 0, 9,
@@ -369,13 +369,12 @@ namespace mi4
 
                         for ( int i =  mc_colidx[tableid] ; i < mc_colidx[tableid + 1] ; i += 3 ) {
                                 ++numTriangles;
-                                std::vector<int> index;
+                                std::vector<size_t> index;
 
                                 for ( int j = 0 ; j < 3 ; ++j ) {
                                         index.push_back ( mesh.addPoint ( ep[ mc_idxtable[i + j ] ] ) );
                                         isovalue.push_back ( static_cast<float> ( iso[mc_idxtable[i + j] ] ) );
                                 }
-
                                 mesh.addFace ( index );
                         }
                 }
@@ -447,7 +446,6 @@ namespace mi4
         }
 };
 #endif// MARCHIING_CUBES_HPP
-
 
 
 
