@@ -12,7 +12,7 @@
 #include <list>
 #include <string>
 #include <memory>
-
+#include <regex>
 namespace mi4
 {
         class TestCase;
@@ -152,11 +152,10 @@ namespace mi4
         {
         private:
 
-                TestSuite       ( const TestSuite& );
-                void operator = ( const TestSuite& );
-                TestSuite       ( TestSuite&& );
-                void operator = ( TestSuite&& );
-
+                TestSuite       ( const TestSuite& ) = delete;
+                void operator = ( const TestSuite& ) = delete;
+                TestSuite       ( TestSuite&& ) = delete;
+                void operator = ( TestSuite&& ) = delete;
                 TestSuite ( void ) = default;
                 ~TestSuite ( void ) = default;
         public:
@@ -174,7 +173,7 @@ namespace mi4
                  * @brief Add test case.
                  */
                 void add ( TestCase* testcase )
-                {
+		{
                         this->_testcases.push_back ( testcase );
                 }
 
@@ -187,38 +186,22 @@ namespace mi4
                                 std::cerr << iter->getTestName() << ": ";
                                 iter->run();
                         }
-
                         std::cerr << std::endl;
 
                         if ( TestCase::getNumErrors() == 0 ) {
                                 return EXIT_SUCCESS;
                         } else {
-                                std::string fileName ( testname );
-                                fileName.append ( TestSuite::replace_str ( __DATE__ ) ).append ( TestSuite::replace_str ( __TIME__ ) ).append ( ".log" );
+                                const std::string fileName = testname + "-" +
+					std::regex_replace(__DATE__,std::regex(R"( +)"), "-") + "-" + 
+					std::regex_replace(__TIME__,std::regex(R"(:+)"), "-") + ".log";
                                 std::ofstream fout ( fileName.c_str() );
                                 TestCase::print ( fout );
 
-                                std::cerr << "error(s) found. see " << fileName << "." << std::endl;
+                                std::cerr << "Errors are found. see " << fileName << "." << std::endl;
                                 return EXIT_FAILURE;
                         }
                 }
-        private:
-                static std::string replace_str ( const std::string& inStr )
-                {
-                        std::string str = inStr;
-                        const std::string rep_str ( "-" );
-
-                        for ( auto pos = str.find ( " " ) ; pos != std::string::npos ; pos = str.find ( " ", 1 + pos ) ) {
-                                str.replace ( pos, 1, rep_str );
-                        }
-
-                        for ( auto pos = str.find ( ":" ) ; pos != std::string::npos ; pos = str.find ( ":", 1 + pos ) ) {
-                                str.replace ( pos, 1, rep_str );
-                        }
-
-                        return str;
-                }
-        private:
+	private:
                 std::list< TestCase* > _testcases; ///< A set of test cases.
         };
 

@@ -1,6 +1,3 @@
-if ( UNIX AND NOT APPLE ) 
-	set(PTHREAD_LIBRARIES "pthread")
-endif ()
 if (glfw3_FOUND AND GLEW_FOUND)
 	ADD_EXECUTABLE(fbo0 fbo0.cpp)
 	TARGET_LINK_LIBRARIES(fbo0 glfw GLEW::GLEW ${OPENGL_LIBRARIES})
@@ -44,7 +41,7 @@ TARGET_LINK_LIBRARIES(volcreator0 Eigen3::Eigen)
 TARGET_LINK_LIBRARIES(normalize0 Eigen3::Eigen)
 TARGET_LINK_LIBRARIES(normalize1 Eigen3::Eigen)
 TARGET_LINK_LIBRARIES(cast0 Eigen3::Eigen)
-TARGET_LINK_LIBRARIES(volut0 ${PTHREAD_LIBRARIES} Eigen3::Eigen)
-TARGET_LINK_LIBRARIES(parallel0 ${PTHREAD_LIBRARIES})
+TARGET_LINK_LIBRARIES(volut0 Threads::Threads Eigen3::Eigen)
+TARGET_LINK_LIBRARIES(parallel0 Threads::Threads)
 
 

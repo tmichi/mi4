@@ -60,11 +60,7 @@ namespace mi4
 
                 void zoom ( bool isUp  )
                 {
-                        if ( isUp ) {
-                                this->_dist *= 0.99;
-                        } else {
-                                this->_dist /= 0.99;
-                        }
+			this->_dist *= isUp ? 0.99 : 1.0 / 0.99;
                 }
 
                 void getZNearFar ( double& zNear, double& zFar )
@@ -74,10 +70,9 @@ namespace mi4
 
                         zNear = dist - radius;
                         zFar  = dist + radius;
+			
+			zNear = std::max ( 0.01, zNear);
 
-                        if ( zNear < 0 ) {
-                                zNear = 0.01;
-                        }
                 }
 
                 double getFov ( void ) const
@@ -95,7 +90,7 @@ namespace mi4
                                 return;
                         }
 
-                        double radius_virtual_sphere = 0.9;
+                        double radius_virtual_sphere = 0.9; // @todo move to attribute  
                         this->project_onto_sphere ( radius_virtual_sphere, oldp );
                         this->project_onto_sphere ( radius_virtual_sphere, newp );
                         Eigen::Quaterniond dr;

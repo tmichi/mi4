@@ -11,10 +11,10 @@ namespace mi4
         class Tokenizer
         {
         private:
-                Tokenizer ( const Tokenizer& );
-                Tokenizer& operator = ( const Tokenizer& );
-                Tokenizer ( Tokenizer&& );
-                Tokenizer& operator = ( Tokenizer&& );
+                Tokenizer ( const Tokenizer& ) = delete;
+                Tokenizer& operator = ( const Tokenizer& )= delete;
+                Tokenizer ( Tokenizer&& )= delete;
+                Tokenizer& operator = ( Tokenizer&& )= delete;
         public:
                 explicit Tokenizer ( const std::string& str, const std::string& delimiter = std::string ( " " ) )
                 {
@@ -50,15 +50,9 @@ namespace mi4
                 std::string toString ( void ) const
                 {
                         std::string result;
-
                         for ( const auto s : this->_token ) {
-                                if ( result.length() != 0 ) {
-                                        result.append ( " " );
-                                }
-
-                                result.append ( s );
+                                result.append ( s ).append(" ");
                         }
-
                         return result;
                 }
         private:

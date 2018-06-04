@@ -26,8 +26,7 @@ SET ( INCLUDE_FILES
       Xml.hpp
       Mesh.hpp
       MeshUtility.hpp
-      VolumeDataPolygonizer.hpp
-      mc_table.hpp
+      marching_cubes.hpp
     )
 INSTALL ( FILES ${INCLUDE_FILES}
           DESTINATION include/mi4

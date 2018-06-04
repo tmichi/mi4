@@ -116,38 +116,32 @@ namespace mi4
                         return *this;
                 }
 
-                bool exist ( const std::string& key, const int offset = 0 ) const
+                bool exist ( const std::string& key, const size_t offset = 0 ) const
                 {
                         return ( this->find ( key, offset ) > -1 );
                 }
 
                 template <typename T>
-                T get ( const std::string& key, const int offset = 1 ) const
+                T get ( const std::string& key, const size_t offset = 1 ) const
                 {
                         return this->get<T> ( this->find ( key, offset ) ) ;
                 }
 
                 template <typename T>
-                T get ( const int idx ) const
+                T get ( const size_t idx ) const
                 {
                         return parser::parse<T> ( this->_argv.at ( idx ) );
                 }
 
         private:
-                int find ( const std::string& key, const int offset = 0 ) const
+                int find ( const std::string& key, const size_t offset = 0 ) const
                 {
-                        if ( offset < 0 ) {
-                                return -1;        // invalid offset
-                        }
-
-                        const int end = this->size() - offset ;
-
-                        for ( int i = 0 ; i < end ; ++i ) {
-                                if ( this->get<std::string> ( i ).compare ( key ) == 0 ) {
-                                        return static_cast<int> ( i ) + offset;
+                        for ( size_t i = 0 ; i < this->size() ; ++i ) {
+                                if ( i + offset < this->size() && this->get<std::string> ( i ).compare ( key ) == 0 ) {
+                                        return i + offset;
                                 }
                         }
-
+			
                         return -1; // any arguments are not matched.
                 }
         private:
@@ -292,8 +286,8 @@ namespace mi4
 
                 bool parse ( const Argument& arg ) const
                 {
-                        const int& offset = this->_offset;
-                        const std::string key = this->get_key();
+                        const auto& offset = this->_offset;
+                        const auto key = this->get_key();
                         T& value = this->_value;
 
                         if ( arg.exist ( key, offset ) ) {
@@ -517,6 +511,7 @@ namespace mi4
                         _attr0 ( new NumericAttribute<T> ( key, v0, 1 ) ),
                         _attr1 ( new NumericAttribute<T> ( key, v1, 2 ) )
                 {
+			return;
                 }
                 ~DoubleNumericAttribute ( void ) = default;
 
@@ -946,7 +941,7 @@ namespace mi4
                                 std::cerr << "termination failed." << std::endl;
                                 return -3;
                         } else {
-                                return 0;
+                                return 0; // SUCCESS 
                         }
                 }
         private:
