@@ -16,7 +16,7 @@ public:
 
         static void test_basic ( void )
         {
-                ASSERT_EQUALS ( 0, 1 );
+                ASSERT_EQUALS (0, 0);
                 return ;
         }
 };

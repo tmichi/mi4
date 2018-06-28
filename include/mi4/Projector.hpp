@@ -55,12 +55,10 @@ namespace mi4
                                                  vp[1] + ( 1 + p0.y() ) * vp[3] * 0.5 );
                 }
 
-                Eigen::Vector3d unproject ( const Eigen::Vector2d& wp, double depth )
+                Eigen::Vector3d unproject(const Eigen::Vector2d &wp, double depth) const
                 {
-                        Eigen::Vector3d unPrjP;
-
-                        Eigen::Matrix4d&  inv_matrix = this->_inv_matrix;
-                        std::array<int, 4>& vp = this->_viewport;
+                        const auto &inv_matrix = this->_inv_matrix;
+                        const auto &vp = this->_viewport;
                         Eigen::Vector4d p;
                         p.x() = ( wp.x() - vp[0] ) * 2 / vp[2] - 1.0;
                         p.y() = ( wp.y() - vp[1] ) * 2 / vp[3] - 1.0;
@@ -70,13 +68,9 @@ namespace mi4
                         const Eigen::Vector4d p1 = inv_matrix * p;
 
                         if ( p1.w() != 0.0 ) {
-                                unProj = 1.0 / p1.w() *  Eigen::Vector3d ( p1.x(), p1.y(), p1.z() );
-                                /*        unPrjP.x() = p1.x() / p1.w();
-                                        unPrjP.y() = p1.y() / p1.w();
-                                        unPrjP.z() = p1.z() / p1.w(); */
+                                return 1.0 / p1.w() * Eigen::Vector3d(p1.x(), p1.y(), p1.z());
                         }
-
-                        return unPrjP;
+                        return Eigen::Vector3d();
                 }
         private:
                 Eigen::Matrix4d _matrix;

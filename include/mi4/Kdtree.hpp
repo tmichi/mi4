@@ -17,65 +17,56 @@ namespace mi4
         * @class Kdtree Kdtree.hpp "mi/Kdtree.hpp"
         * @note You can integrate with any own vector types, but it must have  following methods:
         * @li T::operator[](int); to access each coordinate value.
-        * @li T::T(const T& d);
-        * @li T::copy( const T& d) copying entity of d.
+        * @li T::T(const T& d); copy constructor
         */
         template <typename T, size_t Dim = 3>
         class Kdtree
         {
         private:
-                /**
-                * @class node in kdtree
-                */
                 class Node
                 {
-                private:
-                        class less_vec_coord
-                        {
-                        private:
-                                char _dim;
-                        public:
-                                less_vec_coord ( const char dim ) : _dim ( dim )
-                                {
-                                        return;
-                                }
-                                bool operator() ( const T& a, const T& b ) const
-                                {
-                                        return a[this->_dim] < b[this->_dim];
-                                }
-                        };
                 private:
                         char		_dimension; // X (0), Y (1) or Z (2) ....
                         std::unique_ptr<Node[]> _child;
                         std::list<T> 	_points;
+                private:
+                        Node(const Node &that) = delete;
+
+                        Node(Node &&that) = delete;
+
+                        void operator=(const Node &that) = delete;
+
+                        void operator=(Node &&that) = delete;
                 public:
                         Node ( void ) : _dimension ( -1 )
                         {
                                 return;
                         }
-
                         ~Node ( void ) = default;
 
                         bool init ( typename std::vector<T>::iterator begin, typename std::vector<T>::iterator end, const size_t numMaxNode )
                         {
-                                this->_points.clear();
+                                auto &child = this->_child;
+                                auto &points = this->_points;
+                                auto &dim = this->_dimension;
+                                points.clear();
 
-                                const auto numElements = std::distance ( begin, end );
-
-                                if ( static_cast<size_t> ( numElements ) <= numMaxNode ) {
-                                        this->_points.insert ( this->_points.end(), begin, end );
+                                const size_t numElements = static_cast<size_t>(std::distance(begin, end));
+                                if (numElements <= numMaxNode) {
+                                        points.insert(points.end(), begin, end);
                                 } else {
-                                        this->_dimension = this->find_separation_axis ( begin, end );
-                                        std::sort ( begin, end, less_vec_coord ( this->_dimension ) );
+                                        dim = this->find_separation_axis(begin, end);
+
+                                        std::sort(begin, end,
+                                                  [dim](const T &a, const T &b) { return a[dim] < b[dim]; });
                                         auto center = begin + static_cast<size_t> ( numElements / 2 );
-                                        this->_points.push_back ( *center );
+                                        points.push_back(*center);
 
-                                        // Create node.
-                                        this->_child.reset ( new Node[2] ); // create
-                                        this->_child[0].init ( begin, center, numMaxNode );
-                                        this->_child[1].init ( center, end, numMaxNode );
+                                        child.reset(new Node[2]); // create
+                                        if (!child) return false;
+                                        child[0].init(begin, center, numMaxNode);
+                                        child[1].init(center, end, numMaxNode);
                                 }
-
                                 return true;
                         }
 
@@ -86,36 +77,37 @@ namespace mi4
 
                         void find ( const T& pnt, const double radius, typename std::list<T>& result )
                         {
-                                if ( this->_points.empty() ) {
+                                auto &points = this->_points;
+                                auto &child = this->_child;
+                                if (points.empty()) {
                                         return;
                                 }
 
                                 if ( this->isLeaf() ) {
                                         const auto sqr = radius * radius;
 
-                                        for ( const auto& iter : this->_points ) {
+                                        for (const auto &iter : points) {
                                                 double squaredDistance = 0;
 
                                                 // ||iter - pnt ||^2 <= radius^2
                                                 for ( size_t i = 0 ; i < Dim ; i++ ) {
                                                         squaredDistance += ( iter[i] - pnt[i] ) * ( iter[i] - pnt[i] );
                                                 }
-
                                                 if  ( squaredDistance <= sqr ) {
                                                         result.push_back ( iter );
                                                 }
                                         }
                                 } else {
                                         const auto& d = this->_dimension;
-                                        const auto p = this->_points.front()[d]; // separator
+                                        const auto p = points.front()[d]; // separator
                                         const auto x = pnt[d]; // target
 
                                         if ( fabs ( x - p ) <= radius ) {
-                                                this->_child[0].find ( pnt, radius, result );
-                                                this->_child[1].find ( pnt, radius, result );
+                                                child[0].find(pnt, radius, result);
+                                                child[1].find(pnt, radius, result);
                                         } else {
-                                                const int idx = ( x < p ) ? 0 : 1;
-                                                this->_child[idx].find ( pnt, radius, result );
+                                                if (x < p) child[0].find(pnt, radius, result);
+                                                else child[1].find(pnt, radius, result);
                                         }
                                 }
 
@@ -131,7 +123,7 @@ namespace mi4
                                         points.push_back ( p );
 
                                         if ( points.size() > numMaxElementsPerNode ) {
-                                                std::vector<T> points0 ( points0.begin(), points0.end() );
+                                                std::vector< T > points0(points.begin(), points.end());
                                                 points.clear();
                                                 this->init ( points0.begin(), points0.end(), numMaxElementsPerNode );
                                                 points0.clear();
@@ -139,8 +131,8 @@ namespace mi4
                                 } else {
                                         const auto delim = points.front[d];
                                         const auto x = p[d];
-                                        const int idx = ( x < delim ) ? 0 : 1;
-                                        this->_child[idx].add ( p, numMaxElementsPerNode );
+                                        const int i = (x < delim) ? 0 : 1;
+                                        this->_child[i].add(p, numMaxElementsPerNode);
                                 };
 
                                 return;
@@ -155,26 +147,18 @@ namespace mi4
                                         this->_child[0].getAll ( point );
                                         this->_child[1].getAll ( point );
                                 }
-
                                 return;
                         }
                 private:
                         char find_separation_axis ( typename std::vector<T>::iterator begin, typename std::vector<T>::iterator end ) const
                         {
-                                T bmin = *begin;
-                                T bmax = *begin;
-
+                                auto bmin = *begin, bmax = *begin;
                                 for ( auto iter = begin ; iter != end ; ++iter ) {
-                                        T p = *iter;
+                                        auto p = *iter;
 
-                                        for ( size_t i = 0 ; i < Dim ; i++ ) {
-                                                if ( p[i] < bmin[i] ) {
-                                                        bmin[i] = p[i];
-                                                }
-
-                                                if ( p[i] > bmax[i] ) {
-                                                        bmax[i] = p[i];
-                                                }
+                                        for (size_t i = 0; i < Dim; ++i) {
+                                                bmin[i] = std::min(p[i], bmin[i]);
+                                                bmax[i] = std::max(p[i], bmax[i]);
                                         }
                                 }
 
@@ -194,23 +178,21 @@ namespace mi4
                         }
                 };
         private:
-                Kdtree ( const Kdtree& that );
-                Kdtree& operator = ( const Kdtree& that );
-                Kdtree ( Kdtree&& that );
-                Kdtree& operator = ( Kdtree&& that );
+                Kdtree(const Kdtree &that) = delete;
+
+                Kdtree &operator=(const Kdtree &that) = delete;
+
+                Kdtree(Kdtree &&that) = delete;
+
+                Kdtree &operator=(Kdtree &&that) = delete;
         private:
                 size_t  _numElement;
                 size_t  _numMaxElementsPerNode;
                 Node _parent;
-
                 double _init_radius;
         public:
-                explicit Kdtree ( void ) : _numElement ( 0 ), _numMaxElementsPerNode ( 10 ), _init_radius ( 0.001 )
-                {
-                        return;
-                }
-
-                explicit Kdtree ( std::vector<T>& point, const size_t numMaxElementsPerNode = 10, const double init_radius = 0.001 )
+                explicit Kdtree(std::vector< T > &point = std::vector< T >(), const size_t numMaxElementsPerNode = 10,
+                                const double init_radius = 0.001) : _numElement(0)
                 {
                         this->build ( point, numMaxElementsPerNode, init_radius );
                         return;
@@ -229,7 +211,6 @@ namespace mi4
                 bool rebuild ( const size_t numMaxElementsPerNode = 10 )
                 {
                         std::vector<T> point;
-                        point.reserve ( this->size() );
                         this->_parent.getAll ( point );
                         return this->build ( point, numMaxElementsPerNode );
                 }
@@ -241,12 +222,12 @@ namespace mi4
                         return result;
                 }
 
-                void find ( const T p, const double radius, std::vector<T>& node, bool isSorted = false )
+                void find(const T p, const double radius, std::vector< T > &nodes, bool isSorted = false)
                 {
-                        node.clear();
+                        nodes.clear();
                         std::list<T> result;
                         this->find ( p, radius, result, isSorted );
-                        node.insert ( node.end(), result.begin(), result.end() );
+                        nodes.insert(nodes.end(), result.begin(), result.end());
                         return;
                 }
 
@@ -254,11 +235,7 @@ namespace mi4
                 {
                         node.clear();
                         this->_parent.find ( p, radius, node );
-
-                        if ( isSorted ) {
-                                node.sort ( less_vec_length ( p ) );
-                        }
-
+                        if (isSorted) this->sort_result(p, node);
                         return;
                 }
 
@@ -269,18 +246,16 @@ namespace mi4
                         return result;
                 }
 
-
-
-                void find ( const T p, const size_t num, std::vector<T>& node )
+                void find(const T p, const size_t n, std::vector< T > &nodes)
                 {
-                        node.clear();
+                        nodes.clear();
                         std::list<T> result;
-                        this->find ( p, num, result );
-                        node.insert ( node.end(), result.begin(), result.end() );
+                        this->find(p, n, result);
+                        nodes.insert ( nodes.end(), result.begin(), result.end() );
                         return;
-
                 }
-                void find ( const T p, const size_t num, std::list<T>& node )
+
+                void find(const T p, const size_t num, std::list< T > &node)
                 {
                         double r = this->_init_radius;
                         const double base = std::pow ( static_cast<double> ( num ), 1.0 / 3.0 );
@@ -293,17 +268,12 @@ namespace mi4
                         } else {
                                 while ( node.size() < num ) {
                                         this->find ( p, r, node, false );
-
-                                        if ( node.size() == 0 ) {
-                                                r *= 2;
-                                        } else {
-                                                r *= static_cast<double> ( base * 1.0 / pow ( static_cast<double> ( node.size() ), 0.3333 ) );
-                                        }
+                                        r *= node.empty() ? 2 : static_cast<double> ( base * 1.0f /
+                                                                                      std::pow(node.size(),
+                                                                                               1.0f / 3.0f));
                                 }
-
-                                node.sort ( less_vec_length ( p ) );
+                                this->sort_result(p, node);
                                 node.resize ( num );
-
                         }
 
                         return;
@@ -311,16 +281,9 @@ namespace mi4
 
                 T closest ( const T& p )
                 {
-                        std::list<T> node;
-                        node.clear();
-                        double radius = this->_init_radius;
-
-                        while ( node.empty() ) {
-                                radius *= 2;
-                                this->find ( p, radius, node, true );
-                        }
-
-                        return node.front(); // * ( node.begin() );
+                        std::list< T > nodes;
+                        this->find(p, 1, nodes);
+                        return nodes.front();
                 }
 
                 void add ( const T& element )
@@ -330,39 +293,22 @@ namespace mi4
                         return;
                 }
 
-                size_t size ( void ) const
-                {
+                size_t size(void) const {
                         return this->_numElement;
                 }
         private:
-                /**
-                * @class less_vec_length
-                * @brief functor class for comparing two vector used in Kdtree.
-                */
-                class less_vec_length
-                {
-                private:
-                        T _x;
-                public:
-                        less_vec_length ( const T x ) : _x ( x )
-                        {
-                                return;
-                        }
-                        bool operator () ( const T& a, const T& b ) const
-                        {
+                void sort_result(const T &p, std::list< T > &nodes) {
+                        nodes.sort([&p](const T &a, const T &b) {
                                 double ra = 0;
                                 double rb = 0;
-
-                                for ( size_t i  = 0 ; i  < Dim ; i++ ) {
-                                        ra += ( a[i] - this->_x[i] ) * ( a[i] - this->_x[i] );
-                                        rb += ( b[i] - this->_x[i] ) * ( b[i] - this->_x[i] );
+                                for (size_t i = 0; i < Dim; i++) {
+                                        ra += (a[i] - p[i]) * (a[i] - p[i]);
+                                        rb += (b[i] - p[i]) * (b[i] - p[i]);
                                 }
-
-                                return ra < rb ;
-                        }
-                };
+                                return ra < rb;
+                        });
+                }
         };
-
 
         template <typename T, typename S = int, size_t Dim = 3>
         class IndexedVector : public T
@@ -370,22 +316,24 @@ namespace mi4
         private:
                 S _id;
         public:
-                IndexedVector ( const T& v = T(), const S id = -1 ) : T ( v ), _id ( id )
+                explicit IndexedVector(const T &v = T(), const S id = -1) : T(v), _id(id)
                 {
                         return;
                 }
 
-                IndexedVector ( const IndexedVector<T, S, Dim>& that ) = default;
+                ~IndexedVector() = default;
+
+                IndexedVector(const IndexedVector< T, S, Dim > &that) = default;
+
+                IndexedVector(IndexedVector< T, S, Dim > &&that) = default;
                 IndexedVector& operator = ( const IndexedVector<T, S, Dim>& that ) = default;
 
-                /**
-                * @brief get id of the point.
-                * @return ID of the point.
-                */
+                IndexedVector &operator=(IndexedVector< T, S, Dim > &&that)      = default;
+
                 S id ( void ) const
                 {
                         return this->_id;
                 }
-        };//IndexedVector
+        };
 }
 #endif// MI_KDTREE_HPP

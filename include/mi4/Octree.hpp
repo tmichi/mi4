@@ -13,11 +13,13 @@
 
 namespace mi4
 {
-        typedef unsigned char OctreeNodeType;
-        static OctreeNodeType const OCTREE_INVALID = 0xFF;
-        static OctreeNodeType const OCTREE_LEAF  = 0x02;
-        static OctreeNodeType const OCTREE_EMPTY = 0x01; // LEAF and contains emptyValue : use only serialization
-        static OctreeNodeType const OCTREE_INTERMEDIATE = 0x00;
+        enum class OctreeNodeType : uint8_t {
+                INVALID = 0xFF,
+                LEAF = 0x02,
+                EMPTY = 0x01,
+                INTERMEDIATE = 0x00
+        };
+
         static const int NUM_CHILDREN = 8;
 
         class octree_non_copyable
@@ -212,24 +214,24 @@ namespace mi4
                                 OctreeNodeType type;
 
                                 if      ( !this->is_leaf() ) {
-                                        type = OCTREE_INTERMEDIATE;
+                                        type = OctreeNodeType::INTERMEDIATE;
                                 } else if ( this->value() == emptyValue ) {
-                                        type = OCTREE_EMPTY;
+                                        type = OctreeNodeType::EMPTY;
                                 } else {
-                                        type = OCTREE_LEAF;
+                                        type = OctreeNodeType::LEAF;
                                 }
 
                                 if ( ! fout.write ( ( char* ) ( &type ), sizeof ( OctreeNodeType ) ) ) {
                                         return false;
                                 }
 
-                                if ( type == OCTREE_INTERMEDIATE ) {
+                                if (type == OctreeNodeType::INTERMEDIATE) {
                                         for ( int i = 0 ; i < NUM_CHILDREN ; ++i ) {
                                                 if ( ! this->child ( i ).write ( fout, emptyValue ) ) {
                                                         return false;
                                                 }
                                         }
-                                } else if ( type == OCTREE_LEAF ) {
+                                } else if (type == OctreeNodeType::LEAF) {
                                         return fout.write ( ( char* ) ( & ( this->value() ) ), sizeof ( T ) ).good();
                                 }
 
@@ -244,12 +246,12 @@ namespace mi4
                                         return false;
                                 }
 
-                                if ( type == OCTREE_EMPTY ) {
+                                if (type == OctreeNodeType::EMPTY) {
                                         this->value() = emptyValue;
                                         return true;
-                                } else if ( type == OCTREE_LEAF ) {
+                                } else if (type == OctreeNodeType::LEAF) {
                                         return fin.read ( ( char* ) ( &this->value() ), sizeof ( T ) ).good();
-                                } else if ( type == OCTREE_INTERMEDIATE ) {
+                                } else if (type == OctreeNodeType::INTERMEDIATE) {
                                         this->create_children();
 
                                         for ( int i = 0 ; i < NUM_CHILDREN ; ++i ) {

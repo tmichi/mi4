@@ -53,8 +53,8 @@ namespace mi4
                         const auto& dist   = this->_dist;
 
                         const auto r = rotation.toRotationMatrix();
-                        eye = r * Eigen::Vector3d eye0 ( 0, 0, dist ) + center;
-                        up  = r * Eigen::Vector3d up0 ( 0, 1, 0 );
+                        eye = r * Eigen::Vector3d(0, 0, dist) + center;
+                        up = r * Eigen::Vector3d(0, 1, 0);
                         return;
                 }
 

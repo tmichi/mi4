@@ -95,7 +95,7 @@ namespace mi4
                  * @param[in] argc the number of arguments. use argc in main().
                  * @param[out] argv the arguments. use argv in main().
                  */
-                explicit Argument ( int argc = 0, char** argv = NULL )
+                explicit Argument(int argc = 0, char **argv = nullptr)
                 {
                         for ( int i = 0 ; i < argc ; ++i ) {
                                 this->add ( argv[i] );
@@ -141,7 +141,6 @@ namespace mi4
                                         return i + offset;
                                 }
                         }
-			
                         return -1; // any arguments are not matched.
                 }
         private:
@@ -160,7 +159,6 @@ namespace mi4
         private:
                 const std::string  _key;
                 std::string        _message;
-
                 bool               _isMandatory;
                 bool               _isHidden;
                 Attribute::ErrorCode _errorCode;
@@ -216,20 +214,19 @@ namespace mi4
 
                 virtual void print_usage ( void )
                 {
-                        if ( this->is_hidden() ) {
-                                return;
+                        if (!this->is_hidden()) {
+                                std::cerr << "\t" << this->_key << ":\t" << this->_message << std::endl;
                         }
-
-                        std::cerr << "\t" << this->_key << ":\t" << this->_message << std::endl;
                         return;
                 }
 
                 virtual void print ( std::ostream& out )
                 {
-                        out << "[\"" << this->get_key() << "\"] " << this->toString() << std::endl;
+                        if (!this->is_hidden()) {
+                                out << "[\"" << this->get_key() << "\"] " << this->toString() << std::endl;
+                        }
                         return;
                 }
-
                 virtual std::string toString ( void ) const
                 {
                         return std::string();

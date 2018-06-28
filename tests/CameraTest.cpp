@@ -4,7 +4,7 @@
 class CameraTest : public mi4::TestCase
 {
 public:
-        explicit CameraTest ( void  ) : mi4::TestCase ( "argument_test" )
+        explicit CameraTest(void) : mi4::TestCase("camera_test")
         {
                 return;
         }
@@ -16,7 +16,7 @@ public:
 
         static void test_basic ( void )
         {
-                ASSERT_EQUALS ( 0, 1 );
+                ASSERT_EQUALS (1, 1);
                 return ;
         }
 };

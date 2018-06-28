@@ -3,7 +3,6 @@
 #include "ParallelFor.hpp"
 #include "VolumeData.hpp"
 #include "PriorityQueue.hpp"
-//#include "ConnectedComponentLabeller.hpp"
 #include <thread>
 #include <string>
 #include <cstring>
@@ -17,8 +16,6 @@ namespace mi4
 {
         class VolumeDataUtility
         {
-        private:
-
         public:
                 static bool& isDebugMode ( void )
                 {
@@ -36,48 +33,31 @@ namespace mi4
                 static bool open ( VolumeData<T>& data, const std::string& filename, const int headerSize = 0 )
                 {
                         std::ifstream fin ( filename.c_str(), std::ios::binary );
-
                         if ( !fin ) {
-                                std::cerr << "open failed." << std::endl;
+                                std::cerr << "Open failed." << std::endl;
                                 return false;
                         }
-
                         fin.seekg ( headerSize );
-
-                        if ( !data.read ( fin ) ) {
-                                std::cerr << "Error occured." << std::endl;
-                                return false;
-                        }
-
-                        return true;
+                        return data.read(fin);
                 }
                 template< typename T>
                 static bool save ( VolumeData<T>& data, const std::string& filename )
                 {
                         std::ofstream fout ( filename.c_str(), std::ios::binary );
-
                         if ( !fout ) {
-                                std::cerr << "open failed." << std::endl;
+                                std::cerr << filename << "cannot be open." << std::endl;
                                 return false;
                         }
-
-                        if ( !data.write ( fout ) ) {
-                                std::cerr << "Error occured." << std::endl;
-                                return false;
-                        }
-
-                        return true;
+                        return data.write(fout);
                 }
 
                 template< typename T>
                 static bool debug_save ( VolumeData<T>& data, const std::string& filename )
                 {
-                        if ( !VolumeDataUtility::isDebugMode() ) {
-                                return true;        // do nothing.
+                        if (VolumeDataUtility::isDebugMode()) {
+                                std::cerr << "[debug] the result was saved to " << filename << std::endl;
+                                return VolumeDataUtility::save(data, filename);
                         }
-
-                        VolumeDataUtility::save ( data, filename );
-                        std::cerr << "[debug] the result was saved to " << filename << std::endl;
                         return true;
                 }
 
@@ -85,7 +65,6 @@ namespace mi4
                 static VolumeData<T> changeEndian ( const VolumeData<T>& data )
                 {
                         VolumeData<T> result ( data.getInfo() );
-
                         for ( const auto& p : Range ( data.getInfo() ) ) {
                                 const T v = data.get ( p );
                                 const int size = sizeof ( T );
@@ -93,13 +72,11 @@ namespace mi4
                                 if ( size > 1 ) {
                                         unsigned char* c = new unsigned char[size];
                                         std::memcpy ( &v, c, size );
-
                                         for ( int i = 0 ; i < size / 2 ; ++i ) {
                                                 unsigned char tmp = c[i];
                                                 c[i] = c[ size - 1 - i ];
                                                 c[ size - 1 - i ] = tmp;
                                         }
-
                                         std::memcpy ( c, &v, size );
                                         delete[] c;
                                 }
