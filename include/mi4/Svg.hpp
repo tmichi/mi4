@@ -137,25 +137,19 @@ namespace mi4
 
                 void drawRect ( const double x0, const double y0, const double w, const double h )
                 {
-                        auto v0 = this->convertTo ( Svg::Vector2d ( x0, y0 ) );
-                        auto v1 = this->convertTo ( Svg::Vector2d ( w + x0, h + y0 ) );
-
-                        const double minx = v0.x < v1.x ? v0.x : v1.x;
-                        const double miny = v0.y < v1.y ? v0.y : v1.y;
-                        const double maxx = v0.x > v1.x ? v0.x : v1.x;
-                        const double maxy = v0.y > v1.y ? v0.y : v1.y;
-                        const double sizex = maxx - minx;
-                        const double sizey = maxy - miny;
-
+                        auto p = this->convertTo(Svg::Vector2d(x0, y0));
+                        auto size = this->convertTo(Svg::Vector2d(w + x0, h + y0));
                         auto& element = this->_xmldoc->getRoot().addChildElement ( "rect" );
-                        element.addAttribute ( "x", minx ).addAttribute ( "y", miny ).addAttribute ( "width", sizex ).addAttribute ( "height", sizey ) ;
+                        element.addAttribute("x", p.x).addAttribute("y", p.y).addAttribute("width",
+                                                                                           size.x).addAttribute(
+                                "height", size.y).addAttribute("stroke-width", this->_stroke_width).addAttribute(
+                                "stroke", this->_stroke_color);
 
                         if ( this->_stroke_dashed > 0 ) {
                                 element.addAttribute ( "stroke-dasharray", this->_stroke_dashed );
                         }
 
-                        element.addAttribute ( "stroke-width",  this->_stroke_width  );
-                        element.addAttribute ( "stroke", this->_stroke_color );
+
                         return;
                 }
                 std::string toString ( void ) const
@@ -163,13 +157,11 @@ namespace mi4
                         return this->_xmldoc->toString();
                 }
         private:
-                Svg::Vector2d convertTo ( const Vector2d& v ) const
+                Svg::Vector2d convertTo (const Vector2d& p) const
                 {
-                        /*                        const double s = ( p.x - this->_bmin.x ) / ( this->_bmax.x - this->_bmin.x ) ;
-                                                const double t = ( p.y - this->_bmin.y ) / ( this->_bmax.y - this->_bmin.y ) ;
-                                                p.x = s * this->_size.x ;
-                                                p.y = ( 1.0 - t ) * this->_size.y ;
-                        */
+                        const double s = (p.x - this->_bmin.x) / (this->_bmax.x - this->_bmin.x);
+                        const double t = (p.y - this->_bmin.y) / (this->_bmax.y - this->_bmin.y);
+                        Svg::Vector2d v(s * this->_size.x, t * this->_size.y);
                         return v;
                 }
         };

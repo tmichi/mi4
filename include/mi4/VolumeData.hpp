@@ -17,18 +17,21 @@
 
 namespace mi4
 {
-// Type definitions for vectors.
-        typedef Eigen::Vector3d Vector3d;
-        typedef Eigen::Vector3f Vector3f;
-        typedef Eigen::Vector3i Vector3i;
-        typedef Eigen::Matrix< short, 3, 1> Vector3s;
-        typedef Eigen::Vector3d Point3d;
-        typedef Eigen::Vector3f Point3f;
-        typedef Eigen::Vector3i Point3i;
-        typedef Eigen::Vector3f Color3f;
+        using Vector3d = Eigen::Vector3d;
+        using Vector3f = Eigen::Vector3f;
+        using Vector3i = Eigen::Vector3i;
+        using Vector3s = Eigen::Matrix< uint16_t, 3, 1 >;
+        using Point3d = Eigen::Vector3d;
+        using Point3f = Eigen::Vector3f;
+        using Point3i = Eigen::Vector3i;
+        using Color3f = Eigen::Vector3f;
 
         class VolumeInfo
         {
+        private:
+                Point3i _size; ///< Global bounding box.
+                Point3d _pitch; ///< Voxel pitch.
+                Point3d _origin; ///< Origin point. Corresponding to global (0,0,0) in voxel space.
         public:
                 explicit VolumeInfo ( const Point3i& size = Point3i ( 0, 0, 0 ), const Point3d& pitch = Point3d ( 1, 1, 1 ), const Point3d& origin = Point3d ( 0, 0, 0 ) ) : _size ( size ), _pitch ( pitch ), _origin ( origin )
                 {
@@ -68,10 +71,10 @@ namespace mi4
                 initByBoundingBox ( const Vector3d& bmin, const Vector3d& bmax, const Point3d& pitch, const double offset )
                 {
                         const auto origin = bmin - Vector3d ( offset, offset, offset );
-                        Point3i size;
-                        size.x() = this->ceil_int ( ( bmax.x() - bmin.x() + 2 * offset ) / pitch.x() ) ;
-                        size.y() = this->ceil_int ( ( bmax.y() - bmin.y() + 2 * offset ) / pitch.y() ) ;
-                        size.z() = this->ceil_int ( ( bmax.z() - bmin.z() + 2 * offset ) / pitch.z() ) ;
+                        const auto fsize = bmax - bmin + 2 * mi4::Point3d(offset, offset, offset);
+                        const mi4::Point3i size(this->ceil_int(fsize.x() / pitch.x()),
+                                                this->ceil_int(fsize.y() / pitch.y()),
+                                                this->ceil_int(fsize.z() / pitch.z()));
                         return this->init ( size, pitch, origin );
                 }
 
@@ -280,10 +283,6 @@ namespace mi4
                                 return input;
                         }
                 }
-        private:
-                Point3i _size; ///< Global bounding box.
-                Point3d _pitch; ///< Voxel pitch.
-                Point3d _origin; ///< Origin point. Corresponding to global (0,0,0) in voxel space.
         };
 
         class Range

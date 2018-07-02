@@ -1,5 +1,6 @@
 #ifndef MI4_XML_HPP
 #define MI4_XML_HPP 1
+
 #include <memory>
 #include <list>
 #include <map>
@@ -10,7 +11,7 @@
 
 namespace mi4
 {
-        enum XmlNodeType {
+        enum XmlNodeType : uint8_t {
                 InvalidNode,
                 ElementNode,
                 TextNode
@@ -34,6 +35,8 @@ namespace mi4
 
         class XmlText : public XmlNode
         {
+        private:
+                std::string _text;
         public:
                 XmlText ( const std::string& text ) : XmlNode(),  _text ( text )
                 {
@@ -61,12 +64,14 @@ namespace mi4
                 {
                         os << std::string ( indent * 4, ' ' ) << this->getText() << std::endl;
                 }
-        private:
-                std::string _text;
         };
 
         class XmlElement : public XmlNode
         {
+        private:
+                std::string _name; // element name
+                std::list< std::unique_ptr< XmlNode > > _children; // child nodes.
+                std::map< std::string, std::string > _attributes; // attributes
         public:
                 XmlElement ( const std::string& name ) : XmlNode (), _name ( name )
                 {
@@ -119,23 +124,7 @@ namespace mi4
                 std::string getAttribute ( const std::string& key ) const
                 {
                         const auto& iter = this->_attributes.find ( key );
-
-                        if ( iter != this->_attributes.end() ) {
-                                return iter->second;        // if key is found
-                        } else {
-                                return std::string();        // if key does not exist
-                        }
-                }
-
-                std::list<std::string> getAttributeKeys ( void ) const
-                {
-                        std::list<std::string> keys;
-
-                        for ( auto& iter : this->_attributes ) {
-                                keys.push_back ( iter.first );
-                        }
-
-                        return keys;
+                        return (iter != this->_attributes.end()) ? iter->second : std::string();
                 }
 
                 const std::string& getName ( void ) const
@@ -153,31 +142,20 @@ namespace mi4
                 void write ( std::ostream& os, const size_t indent = 0 )
                 {
                         os << std::string ( indent * 4, ' ' ) << "<" << this->getName() ;
-
-                        for ( auto& iter : this->_attributes ) {
+                        for ( const auto& iter : this->_attributes ) {
                                 os << " " << iter.first << "=" << std::quoted ( iter.second );
                         }
-
-                        auto& children = this->_children;
-
-                        if ( children.empty() ) {
-                                os << "/>" << std::endl;
-                        } else {
-                                os << ">" << std::endl;
-
-                                for ( auto& iter : children ) {
-                                        iter->write ( os, indent + 1 ) ;
+                        os << (this->_children.empty() ? "/>" : ">") << std::endl;
+                        //
+                        if ( !this->_children.empty()) {
+                                for ( const auto& iter : this->_children ) {
+                                        iter->write(os, indent + 1);
                                 }
-
                                 os << std::string ( indent * 4, ' ' ) << "</" << this->getName() << ">" << std::endl;
                         }
 
                         return ;
                 }
-        private:
-                std::string _name; // element name
-                std::list<std::unique_ptr<XmlNode> > _children; // child nodes.
-                std::map<std::string, std::string> _attributes; // attributes
         };
 
         class XmlDocument
@@ -203,7 +181,8 @@ namespace mi4
                 std::string toString ( void ) const
                 {
                         std::stringstream ss;
-                        ss << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl;
+                        ss << "<?xml version=" << std::quoted("1.0") << "  encoding=" << std::quoted(
+                                "UTF-8") << " ?>" << std::endl;
                         ss << this->_root->toString();
                         return ss.str();
                 }
