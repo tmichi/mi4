@@ -17,7 +17,7 @@ public:
         static void test_default_constructor ( void )
         {
                 mi4::VolumeData<int> data;
-                ASSERT_EQUALS ( static_cast<int> ( data.isReadable() ), static_cast<int> ( false ) );
+                ASSERT_EQUALS (static_cast<int> ( data.isReadable()), static_cast<int> ( true ));
                 return ;
         }
 };

@@ -39,11 +39,11 @@ namespace mi4
                 static void perspective ( const double fov, const double aspect, const double znear, const double zfar )
                 {
                         assert ( znear - zfar != 0 );
-                        std::vector<double> m ( 16, 0 );
-                        double f = 1.0 / std::tan ( 0.5 * fov * M_PI / 180.0 );
+                        std::vector< double > m(16, 0); //std::array
+
+                        const double f = 1.0 / std::tan(0.5 * fov * M_PI / 180.0);
                         m[0] = f * 1.0 / aspect;
                         m[1 * 4 + 1] = f;
-
                         m[2 * 4 + 2] = ( zfar + znear ) * 1.0 / ( znear - zfar ) ;
                         m[2 * 4 + 3] = -1.0;
                         m[3 * 4 + 2] =  2.0 * zfar * znear / ( znear - zfar ) ;
@@ -57,7 +57,6 @@ namespace mi4
                 static void ortho2d ( const double  left, const double  right, const double  bottom, const double  top )
                 {
                         ::glOrtho ( left, right, bottom, top, -1, 1 );
-                        //OpenGlUtility::ortho ( left, right, bottom, top, -1, 1 );
                         return;
                 }
         };

@@ -142,19 +142,22 @@ namespace mi4
                 void write ( std::ostream& os, const size_t indent = 0 )
                 {
                         os << std::string ( indent * 4, ' ' ) << "<" << this->getName() ;
+
                         for ( const auto& iter : this->_attributes ) {
                                 os << " " << iter.first << "=" << std::quoted ( iter.second );
                         }
+
                         os << (this->_children.empty() ? "/>" : ">") << std::endl;
-                        //
+
                         if ( !this->_children.empty()) {
                                 for ( const auto& iter : this->_children ) {
                                         iter->write(os, indent + 1);
                                 }
+
                                 os << std::string ( indent * 4, ' ' ) << "</" << this->getName() << ">" << std::endl;
                         }
 
-                        return ;
+                        return;
                 }
         };
 
@@ -181,8 +184,9 @@ namespace mi4
                 std::string toString ( void ) const
                 {
                         std::stringstream ss;
-                        ss << "<?xml version=" << std::quoted("1.0") << "  encoding=" << std::quoted(
-                                "UTF-8") << " ?>" << std::endl;
+                        const std::string xmlVersion("1.0");
+                        const std::string encoding("UTF-8");
+                        ss << "<?xml version=" << std::quoted(xmlVersion) << " encoding=" << std::quoted(encoding) << " ?>" << std::endl;
                         ss << this->_root->toString();
                         return ss.str();
                 }

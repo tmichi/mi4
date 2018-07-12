@@ -12,14 +12,13 @@ namespace mi4
         {
         private:
                 Tokenizer ( const Tokenizer& ) = delete;
-                Tokenizer& operator = ( const Tokenizer& )= delete;
-                Tokenizer ( Tokenizer&& )= delete;
-                Tokenizer& operator = ( Tokenizer&& )= delete;
+                Tokenizer& operator = (const Tokenizer&) = delete;
+                Tokenizer (Tokenizer&&) = delete;
+                Tokenizer& operator = (Tokenizer&&) = delete;
         public:
                 explicit Tokenizer ( const std::string& str, const std::string& delimiter = std::string ( " " ) )
                 {
-                        auto& token = this->_token;
-                        token.clear();
+                        auto& tokens = this->_token;
                         std::string::size_type end = 0;
                         std::string line = str;
 
@@ -27,7 +26,7 @@ namespace mi4
                                 end = line.find_first_of ( delimiter );
 
                                 if ( line.substr ( 0, end ).length() > 0 ) {
-                                        token.push_back ( line.substr ( 0, end ) );
+                                        tokens.push_back(line.substr(0, end));
                                 }
 
                                 line = line.substr ( end + 1 );
@@ -50,9 +49,11 @@ namespace mi4
                 std::string toString ( void ) const
                 {
                         std::string result;
+
                         for ( const auto s : this->_token ) {
-                                result.append ( s ).append(" ");
+                                result.append(s).append(" ");
                         }
+
                         return result;
                 }
         private:

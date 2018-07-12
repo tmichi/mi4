@@ -56,9 +56,9 @@ namespace mi4
         {
         private:
                 std::string _ifName;
-                std::array<unsigned char, 6> _address;
+                std::array< uint8_t, 6 > _address;
         public:
-                MacAddress ( const std::string& ifName, unsigned char* addr ) : _ifName ( ifName )
+                MacAddress (const std::string& ifName, uint8_t *addr) : _ifName(ifName)
                 {
                         for ( int i = 0 ; i < 6 ; ++i ) {
                                 this->_address[i] = addr[i];
@@ -249,7 +249,7 @@ namespace mi4
                                         sockaddr_dl* dl = reinterpret_cast<sockaddr_dl*> ( iter->ifa_addr );
 
                                         if ( dl->sdl_family == AF_LINK && dl->sdl_type == IFT_ETHER ) {
-                                                unsigned char* addr = reinterpret_cast<unsigned char*> ( LLADDR ( dl ) );
+                                                uint8_t *addr = reinterpret_cast<uint8_t *> (LLADDR (dl));
                                                 addresses.push_back ( MacAddress ( iter->ifa_name, addr ) );
                                         }
                                 }

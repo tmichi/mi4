@@ -1,14 +1,11 @@
-#ifndef PROGRAM_TEMPLATE_TEST_HPP
-#define PROGRAM_TEMPLATE_TEST_HPP
 #include "mi4/Test.hpp"
 #include "mi4/ProgramTemplate.hpp"
 
 class ProgramTemplateTest : public mi4::TestCase
 {
 public:
-        explicit ProgramTemplateTest ( void  ) : mi4::TestCase ( "program_templte_test" )
+        explicit ProgramTemplateTest (void) : mi4::TestCase("ProgramTemplte_test")
         {
-//		mi4::TestSuite::getInstance().add(this);
                 return;
         }
         void init ( void )
@@ -24,4 +21,4 @@ public:
         }
 };
 static ProgramTemplateTest test;
-#endif
+

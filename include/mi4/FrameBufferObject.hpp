@@ -10,7 +10,6 @@ namespace mi4
         private:
                 const int _width;
                 const int _height;
-
                 GLuint _fbo; // frame buffer object
                 GLuint _cbo; //   +-- color buffer objcet
                 GLuint _rbo; //   +-- render buffer object

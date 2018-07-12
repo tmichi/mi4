@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <vector>
+#include <algorithm>
 
 namespace mi4
 {
@@ -33,10 +34,12 @@ namespace mi4
                 static bool open ( VolumeData<T>& data, const std::string& filename, const int headerSize = 0 )
                 {
                         std::ifstream fin ( filename.c_str(), std::ios::binary );
+
                         if ( !fin ) {
                                 std::cerr << "Open failed." << std::endl;
                                 return false;
                         }
+
                         fin.seekg ( headerSize );
                         return data.read(fin);
                 }
@@ -44,20 +47,23 @@ namespace mi4
                 static bool save ( VolumeData<T>& data, const std::string& filename )
                 {
                         std::ofstream fout ( filename.c_str(), std::ios::binary );
+
                         if ( !fout ) {
                                 std::cerr << filename << "cannot be open." << std::endl;
                                 return false;
                         }
+
                         return data.write(fout);
                 }
 
                 template< typename T>
                 static bool debug_save ( VolumeData<T>& data, const std::string& filename )
                 {
-                        if (VolumeDataUtility::isDebugMode()) {
+                        if ( VolumeDataUtility::isDebugMode()) {
                                 std::cerr << "[debug] the result was saved to " << filename << std::endl;
                                 return VolumeDataUtility::save(data, filename);
                         }
+
                         return true;
                 }
 
@@ -65,6 +71,7 @@ namespace mi4
                 static VolumeData<T> changeEndian ( const VolumeData<T>& data )
                 {
                         VolumeData<T> result ( data.getInfo() );
+
                         for ( const auto& p : Range ( data.getInfo() ) ) {
                                 const T v = data.get ( p );
                                 const int size = sizeof ( T );
@@ -72,11 +79,13 @@ namespace mi4
                                 if ( size > 1 ) {
                                         unsigned char* c = new unsigned char[size];
                                         std::memcpy ( &v, c, size );
+
                                         for ( int i = 0 ; i < size / 2 ; ++i ) {
                                                 unsigned char tmp = c[i];
                                                 c[i] = c[ size - 1 - i ];
                                                 c[ size - 1 - i ] = tmp;
                                         }
+
                                         std::memcpy ( c, &v, size );
                                         delete[] c;
                                 }
@@ -103,39 +112,23 @@ namespace mi4
                         return std::move ( result );
                 }
 
-                static VolumeData<char> extractBoundaryVoxels ( const VolumeData<char>& data )
+                static VolumeData< char > extractBoundaryVoxels (const VolumeData< char >& data, const char BG_VALUE = 0)
                 {
-                        const char BG_VALUE = 0;
                         VolumeData <char> result ( data.getInfo() );
-                        Range nbr ( mi4::Point3i ( -1, -1, -1 ), mi4::Point3i ( 1, 1, 1 ) );
 
-                        for ( const auto p : Range ( data.getInfo() ) ) {
-                                if ( data.get ( p ) == BG_VALUE ) {
-                                        continue;
-                                }
-
-                                for ( const auto& d : nbr ) {
-                                        if ( result.get ( p ) != BG_VALUE ) {
-                                                break;
-                                        }
-
-                                        if ( d == mi4::Point3i ( 0, 0, 0 ) ) {
-                                                continue;
-                                        }
-
-                                        const auto np = p + d;
-
-                                        if ( !data.getInfo().isValid ( np ) ) {
-                                                continue;
-                                        }
-
-                                        if ( data.get ( np ) == BG_VALUE ) {
-                                                result.set ( p, 1 );
+                        for ( const auto& p : Range(data.getInfo())) {
+                                if ( data.get(p) != BG_VALUE ) {
+                                        for ( const auto& d : Range(Point3i(-1, -1, -1), Point3i(1, 1, 1))) {
+                                                if ( d != mi4::Point3i(0, 0, 0) && data.getInfo().isValid(p + d)) {
+                                                        if ( data.get(p + d) == BG_VALUE ) {
+                                                                result.set(p, 1);
+                                                        }
+                                                }
                                         }
                                 }
                         }
 
-                        return result;
+                        return std::move(result);
                 }
                 //
                 // 型変換
@@ -146,7 +139,7 @@ namespace mi4
                         VolumeData<S> result ( data.getInfo() );
 
                         for ( const auto& p : Range ( data.getInfo() ) ) {
-                                result.set ( p, static_cast<S> ( data.get ( p ) ) );
+                                result.at(p) = static_cast<S> ( data.at(p));
                         }
 
                         return std::move ( result );
@@ -155,15 +148,10 @@ namespace mi4
                 template <typename T>
                 static VolumeData<T> clip ( const VolumeData<T>& data, const Point3i& bmin, const Point3i& bmax )
                 {
-                        const auto& info = data.getInfo();
-                        const auto& pitch = info.getPitch();
-                        mi4::Point3i size = bmax - bmin + Point3i ( 1, 1, 1 );
-                        mi4::Point3d origin = info.getPointInSpace ( bmin );
-
-                        VolumeData<T> result ( VolumeInfo ( size, pitch, origin ) );
+                        VolumeData< T > result(VolumeInfo(bmax - bmin + Point3i(1, 1, 1), data.getInfo().getPitch(), data.getInfo().getOrigin()));
 
                         for ( const auto& p : Range ( result.getInfo() ) ) {
-                                result.set ( p, data.get ( bmin + p ) );
+                                result.at(p) = data.at(bmin + p);
                         }
 
                         return std::move ( result );
@@ -173,17 +161,10 @@ namespace mi4
                 static
                 VolumeData<char> diff ( const VolumeData<char>& srcData, const VolumeData<char>& trgData )
                 {
-                        const auto& info =  srcData.getInfo();
-                        VolumeData<char> outData ( info );
+                        VolumeData< char > outData(srcData.getInfo());
 
-                        for ( const auto& p : mi4::Range ( info ) ) {
-                                char value = 0;
-
-                                if ( srcData.get ( p ) == 1  && trgData.get ( p ) == 0 ) {
-                                        value = 1;
-                                }
-
-                                outData.set ( p, value );
+                        for ( const auto& p : mi4::Range(srcData.getInfo())) {
+                                outData.at(p) = std::max(srcData.at(p) - trgData.at(p), 0);
                         }
 
                         return outData;
@@ -192,14 +173,13 @@ namespace mi4
                 template< typename T>
                 static VolumeData<T> negate_binary ( const VolumeData<T>& inData )
                 {
-                        const auto& info = inData.getInfo();
-                        VolumeData<T> outData ( info );
+                        VolumeData< T > outData(inData.getInfo());
 
-                        for ( const auto& p : mi4::Range ( info ) ) {
-                                outData.set ( p, 1 - inData.get ( p ) ) ;
+                        for ( const auto& p : mi4::Range(inData.getInfo())) {
+                                outData.at(p) = 1 - inData.at(p);
                         }
 
-                        return outData;
+                        return std::move(outData);
                 }
 
                 class morphology
@@ -308,7 +288,7 @@ namespace mi4
                                 std::vector<short> cloy ( size.x(), std::numeric_limits<short>::min() ) ;
 
                                 for ( int x = 0 ; x < size.x() ; ++x ) {
-                                        if ( binary.get ( x, y, z ) == 0 ) {
+                                        if ( binary.at(x, y, z) == 0 ) {
                                                 cloy[x] = y;
                                         } else {
                                                 float mind = std::numeric_limits<float>::max();
@@ -334,7 +314,7 @@ namespace mi4
                                 for ( int x = 0 ; x < size.x() ; ++x ) {
                                         short clox = std::numeric_limits<short>::min();
 
-                                        if ( binary.get ( x, y, z ) == 0 ) {
+                                        if ( binary.at(x, y, z) == 0 ) {
                                                 clox = x;
                                         } else {
                                                 float mind = std::numeric_limits<float>::max();

@@ -49,7 +49,6 @@ namespace mi4
 
                         return this->run_main_routine();
                 }
-                ///< @todo must be protected
 
         protected:
                 virtual bool run_main_routine ( void )
@@ -57,22 +56,26 @@ namespace mi4
                         this->add_error_message ( "Routine::run_main_routine() called. Declare the method in the subclass." );
                         return false; //always
                 }
-
-                bool check ( void ) const
-                {
-                        return this->_status;
-                }
-
                 void add_error_message ( const std::string& str )
                 {
-                        std::string header = this->_name;
-                        header.append ( "[error]" );
-
-                        this->_messages.push_back ( header.append ( str ) );
+                        this->add_message("[error]", str);
                         this->_status = false;
                         return;
                 }
+                void add_warning_message (const std::string& str)
+                {
+                        this->add_message("[warning]", str);
+                        return;
+                }
+        private:
+                void add_message (const std::string& header, const std::string& str)
+                {
+                        this->_messages.push_back(header + this->_name + str);
+                }
+                bool check (void) const
+                {
+                        return this->_status;
+                }
         };
 }
-
 #endif // MI4_ROUTINE_HPP

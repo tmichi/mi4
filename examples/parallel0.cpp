@@ -1,6 +1,5 @@
 #include <mi4/ParallelFor.hpp>
 #include <iostream>
-#include <thread>
 #include <mutex>
 static std::mutex mutex;
 class fn
@@ -8,6 +7,7 @@ class fn
 private:
         const std::vector<int>& p;
         int& sum;
+
 public:
         fn ( const std::vector<int>& p0, int& sum0 ) : p ( p0 ), sum ( sum0 )
         {
@@ -24,7 +24,7 @@ int main ( int argc, char** argv )
 {
         std::vector<int> p;
 
-        for ( int i = 0; i < 100000; i ++ ) {
+        for ( int i = 0; i < 10000; i++ ) {
                 p.push_back ( i * 2 );
         }
 

@@ -43,5 +43,6 @@ TARGET_LINK_LIBRARIES(normalize1 Eigen3::Eigen)
 TARGET_LINK_LIBRARIES(cast0 Eigen3::Eigen)
 TARGET_LINK_LIBRARIES(volut0 Threads::Threads Eigen3::Eigen)
 TARGET_LINK_LIBRARIES(parallel0 Threads::Threads)
+TARGET_LINK_LIBRARIES(pq0 Eigen3::Eigen)
 
 

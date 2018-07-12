@@ -1,8 +1,6 @@
 /**
  * @file  ProgramTemplate.hpp
  * @author Takashi Michikawa <michikawa@acm.org>
- * @note
- *   C++11 is required.
  */
 #ifndef MI_PROGRAM_TEMPLATE_HPP
 #define MI_PROGRAM_TEMPLATE_HPP 1
@@ -14,65 +12,66 @@
 #include <vector>
 #include <memory>
 
+
 namespace mi4
 {
         namespace parser
         {
                 // parse string to numeric value or something.
-                template <typename T>
+                template < typename T >
                 inline T parse ( const std::string& str );
 
-                template<>
+                template <>
                 inline int8_t parse ( const std::string& str )
                 {
                         return static_cast<int8_t> ( std::stoi ( str ) );
                 }
-                template<>
+                template <>
                 inline uint8_t parse ( const std::string& str )
                 {
                         return static_cast<uint8_t> ( std::stoi ( str ) );
                 }
-                template<>
+                template <>
                 inline int16_t parse ( const std::string& str )
                 {
                         return static_cast<int16_t> ( std::stoi ( str ) );
                 }
-                template<>
+                template <>
                 inline uint16_t parse ( const std::string& str )
                 {
                         return static_cast<uint16_t> ( std::stoi ( str ) );
                 }
-                template<>
+                template <>
                 inline int32_t parse ( const std::string& str )
                 {
                         return std::stoi ( str );
                 }
-                template<>
+                template <>
                 inline uint32_t parse ( const std::string& str )
                 {
                         return std::stoul ( str );
                 }
-                template<>
+                template <>
                 inline int64_t parse ( const std::string& str )
                 {
                         return std::stoll ( str );
                 }
-                template<>
+                template <>
                 inline uint64_t parse ( const std::string& str )
                 {
                         return std::stoull ( str );
                 }
-                template<>
+                template <>
                 inline float parse ( const std::string& str )
                 {
                         return std::stof ( str );
                 }
-                template<>
+                template <>
                 inline double parse ( const std::string& str )
                 {
                         return std::stod ( str );
                 }
-                template<>
+                template <>
                 inline std::string parse ( const std::string& str )
                 {
                         return str;
@@ -95,13 +94,11 @@ namespace mi4
                  * @param[in] argc the number of arguments. use argc in main().
                  * @param[out] argv the arguments. use argv in main().
                  */
-                explicit Argument(int argc = 0, char **argv = nullptr)
+                explicit Argument (int argc = 0, char **argv = nullptr)
                 {
-                        for ( int i = 0 ; i < argc ; ++i ) {
+                        for ( int i = 0; i < argc; ++i ) {
                                 this->add ( argv[i] );
                         }
-
-                        return;
                 }
                 ~Argument ( void ) = default;
 
@@ -121,56 +118,50 @@ namespace mi4
                         return ( this->find ( key, offset ) > -1 );
                 }
 
-                template <typename T>
+                template < typename T >
                 T get ( const std::string& key, const size_t offset = 1 ) const
                 {
-                        return this->get<T> ( this->find ( key, offset ) ) ;
+                        return (this->find(key, offset) == -1) ? T() : this->get< T >(this->find(key, offset));
                 }
 
-                template <typename T>
+                template < typename T >
                 T get ( const size_t idx ) const
                 {
-                        return parser::parse<T> ( this->_argv.at ( idx ) );
+                        return parser::parse< T >(this->_argv.at(idx));
                 }
-
         private:
                 int find ( const std::string& key, const size_t offset = 0 ) const
                 {
-                        for ( size_t i = 0 ; i < this->size() ; ++i ) {
-                                if ( i + offset < this->size() && this->get<std::string> ( i ).compare ( key ) == 0 ) {
+                        for ( size_t i = 0; i < this->size(); ++i ) {
+                                if ( i + offset < this->size() && key.compare(this->get< std::string >(i)) == 0 ) {
                                         return i + offset;
                                 }
                         }
+
                         return -1; // any arguments are not matched.
                 }
         private:
-                std::deque<std::string> _argv;
-        };
+                std::deque< std::string > _argv;
+        };//Argument
 
         class Attribute
         {
         protected:
-                enum ErrorCode {
-                        ATTRIBUTE_ERROR_OK                 = 0,   ///< OK.
-                        ATTRIBUTE_ERROR_KEY_NOT_FOUND      = -1,  ///< The key cannot be found.
-                        ATTRIBUTE_ERROR_VALUE_OUT_OF_RANGE = -2,  ///< The value is out of range.
-                        ATTRIBUTE_ERROR_INVALID            = -100 ///< Other error.
+                enum ErrorCode : int8_t {
+                        ATTRIBUTE_ERROR_OK = 0, ATTRIBUTE_ERROR_KEY_NOT_FOUND = -1, ATTRIBUTE_ERROR_VALUE_OUT_OF_RANGE = -2, ATTRIBUTE_ERROR_INVALID = -100
                 };
         private:
-                const std::string  _key;
-                std::string        _message;
-                bool               _isMandatory;
-                bool               _isHidden;
+                const std::string _key;
+                std::string _message;
+                bool _isMandatory;
+                bool _isHidden;
                 Attribute::ErrorCode _errorCode;
         protected:
-                explicit Attribute ( const std::string& key = std::string ( "" ) ) : _key ( key ), _message ( std::string() ), _isMandatory ( false ), _isHidden ( false ), _errorCode ( ATTRIBUTE_ERROR_OK )
-                {
-                        return;
-                }
+                explicit Attribute (const std::string& key = std::string("")) : _key(key), _message(std::string()), _isMandatory(false), _isHidden(false), _errorCode(ATTRIBUTE_ERROR_OK) {}
         public:
                 virtual ~Attribute ( void ) = default;
 
-                Attribute&  setMessage ( const std::string& message )
+                Attribute& setMessage (const std::string& message)
                 {
                         this->_message = message;
                         return *this;
@@ -214,17 +205,19 @@ namespace mi4
 
                 virtual void print_usage ( void )
                 {
-                        if (!this->is_hidden()) {
+                        if ( !this->is_hidden()) {
                                 std::cerr << "\t" << this->_key << ":\t" << this->_message << std::endl;
                         }
+
                         return;
                 }
 
                 virtual void print ( std::ostream& out )
                 {
-                        if (!this->is_hidden()) {
+                        if ( !this->is_hidden()) {
                                 out << "[\"" << this->get_key() << "\"] " << this->toString() << std::endl;
                         }
+
                         return;
                 }
                 virtual std::string toString ( void ) const
@@ -252,29 +245,32 @@ namespace mi4
                 {
                         return this->_errorCode;
                 }
-                void set_error_code ( const  Attribute::ErrorCode code )
+                void set_error_code (const Attribute::ErrorCode code)
                 {
                         this->_errorCode = code;
                 }
         };
 
-        template <typename T>
+        template < typename T >
         class NumericAttribute : public Attribute
         {
         private:
-                T&   _value;
-                int  _offset;
+                T& _value;
+                int _offset;
 
-                T    _minValue; ///< Minimum value.
-                T    _maxValue; ///< Maximum value.
-                T    _defaultValue;  ///< Default value.
+                T _minValue; ///< Minimum value.
+                T _maxValue; ///< Maximum value.
+                T _defaultValue;  ///< Default value.
+
 
                 bool _isMinSet; ///< Minimum value is set.
                 bool _isMaxSet; ///< Maximum value is set.
                 bool _isOutRangeRejected; ///< Out rangevalue is rejected.
 
+
+
         public:
-                NumericAttribute ( const std::string& key,  T& value, const int offset = 1 ) : Attribute ( key ), _value ( value ), _offset ( offset ), _minValue ( T() ), _maxValue ( T() ), _defaultValue ( T() ), _isMinSet ( false ), _isMaxSet ( false ), _isOutRangeRejected ( false )
+                NumericAttribute (const std::string& key, T& value, const int offset = 1) : Attribute(key), _value(value), _offset(offset), _minValue(T()), _maxValue(T()), _defaultValue(T()), _isMinSet(false), _isMaxSet(false), _isOutRangeRejected(false)
                 {
                         return;
                 }
@@ -288,11 +284,11 @@ namespace mi4
                         T& value = this->_value;
 
                         if ( arg.exist ( key, offset ) ) {
-                                value = arg.get<T> ( key, offset );
-                                return const_cast<NumericAttribute<T>*> ( this )->clamp_value ( value );
+                                value = arg.get< T >(key, offset);
+                                return const_cast<NumericAttribute< T > *> ( this )->clamp_value(value);
                         } else {
                                 if ( this->is_mandatory() ) {
-                                        const_cast<NumericAttribute<T>*> ( this )->set_error_code ( ATTRIBUTE_ERROR_KEY_NOT_FOUND );
+                                        const_cast<NumericAttribute< T > *> ( this )->set_error_code(ATTRIBUTE_ERROR_KEY_NOT_FOUND);
                                         return false;
                                 } else {
                                         value = this->_defaultValue;
@@ -302,25 +298,25 @@ namespace mi4
                 }
 
 
-                NumericAttribute<T>& setMandatory ( void )
+                NumericAttribute< T >& setMandatory (void)
                 {
                         Attribute::setMandatory();
                         return *this;
                 }
 
-                NumericAttribute<T>& setHidden ( void )
+                NumericAttribute< T >& setHidden (void)
                 {
                         Attribute::setHidden();
                         return *this;
                 }
 
-                NumericAttribute<T>& setMessage ( const std::string& message )
+                NumericAttribute< T >& setMessage (const std::string& message)
                 {
-                        Attribute::setMessage ( message ) ;
+                        Attribute::setMessage(message);
                         return *this;
                 }
 
-                NumericAttribute<T>& setMin ( const T minValue )
+                NumericAttribute< T >& setMin (const T minValue)
                 {
                         this->_minValue = minValue;
                         this->_isMinSet = true;
@@ -333,7 +329,7 @@ namespace mi4
                         return *this;
                 }
 
-                NumericAttribute<T>& setMax ( const T maxValue )
+                NumericAttribute< T >& setMax (const T maxValue)
                 {
                         this->_maxValue = maxValue;
                         this->_isMaxSet = true;
@@ -346,14 +342,14 @@ namespace mi4
                         return *this;
                 }
 
-                NumericAttribute<T>&  setDefaultValue ( const T defaultValue )
+                NumericAttribute< T >& setDefaultValue (const T defaultValue)
                 {
                         this->_defaultValue = defaultValue;
                         this->clamp_value ( this->_defaultValue );
                         return *this;
                 }
 
-                NumericAttribute<T>& setOutRangeRejected ( void )
+                NumericAttribute< T >& setOutRangeRejected (void)
                 {
                         this->_isOutRangeRejected = true;
                         return *this;
@@ -362,7 +358,7 @@ namespace mi4
         private:
                 bool clamp_value ( T& value )
                 {
-                        if ( ! this->clamp ( value ) ) {
+                        if ( !this->clamp(value)) {
                                 this->set_error_code ( ATTRIBUTE_ERROR_VALUE_OUT_OF_RANGE );
                                 return false;
                         } else {
@@ -372,7 +368,7 @@ namespace mi4
 
                 void swap_min_max ( T& minValue, T& maxValue )
                 {
-                        if ( maxValue <  minValue ) {
+                        if ( maxValue < minValue ) {
                                 const T tmp = minValue;
                                 minValue = maxValue;
                                 maxValue = tmp;
@@ -411,7 +407,7 @@ namespace mi4
         class StringAttribute : public Attribute
         {
         public:
-                explicit StringAttribute ( const std::string& key,  std::string& value ) : Attribute ( key ), _value ( value ), _defaultValue ( std::string() )
+                explicit StringAttribute (const std::string& key, std::string& value) : Attribute(key), _value(value), _defaultValue(std::string())
                 {
                         return;
                 }
@@ -422,7 +418,7 @@ namespace mi4
                         const std::string key = this->get_key();
 
                         if ( arg.exist ( key, 1 ) ) {
-                                this->_value = arg.get<std::string> ( key );
+                                this->_value = arg.get< std::string >(key);
                                 return true;
                         } else {
                                 if ( this->is_mandatory() ) {
@@ -435,7 +431,7 @@ namespace mi4
                         }
                 }
 
-                StringAttribute&  setDefaultValue ( const std::string& defaultValue )
+                StringAttribute& setDefaultValue (const std::string& defaultValue)
                 {
                         this->_defaultValue = defaultValue;
                         return *this;
@@ -453,7 +449,7 @@ namespace mi4
                 }
                 StringAttribute& setMessage ( const std::string& message )
                 {
-                        Attribute::setMessage ( message ) ;
+                        Attribute::setMessage(message);
                         return *this;
                 }
         public:
@@ -463,14 +459,14 @@ namespace mi4
                 }
         private:
                 std::string& _value;
-                std::string  _defaultValue; ///< Default value.
+                std::string _defaultValue; ///< Default value.
         };
 
 
         class BooleanAttribute : public Attribute
         {
         public:
-                explicit BooleanAttribute ( const std::string& key,  bool& value ) : Attribute ( key ), _value ( value )
+                explicit BooleanAttribute (const std::string& key, bool& value) : Attribute(key), _value(value)
                 {
                         return;
                 }
@@ -481,13 +477,13 @@ namespace mi4
 
                 bool parse ( const Argument& arg ) const
                 {
-                        this->_value  = arg.exist ( this->get_key() );
+                        this->_value = arg.exist(this->get_key());
                         return /* always */ true;
                 }
 
                 BooleanAttribute& setMessage ( const std::string& message )
                 {
-                        Attribute::setMessage ( message ) ;
+                        Attribute::setMessage(message);
                         return *this;
                 }
         public:
@@ -500,15 +496,13 @@ namespace mi4
                 bool& _value;
         };
 
-        template <typename T>
+        template < typename T >
         class DoubleNumericAttribute : public Attribute
         {
         public:
-                explicit DoubleNumericAttribute ( const std::string& key,  T& v0, T& v1 ): Attribute ( key ),
-                        _attr0 ( new NumericAttribute<T> ( key, v0, 1 ) ),
-                        _attr1 ( new NumericAttribute<T> ( key, v1, 2 ) )
+                explicit DoubleNumericAttribute (const std::string& key, T& v0, T& v1) : Attribute(key), _attr0(new NumericAttribute< T >(key, v0, 1)), _attr1(new NumericAttribute< T >(key, v1, 2))
                 {
-			return;
+                        return;
                 }
                 ~DoubleNumericAttribute ( void ) = default;
 
@@ -516,45 +510,45 @@ namespace mi4
                 {
                         return this->_attr0->parse ( arg ) && this->_attr1->parse ( arg );
                 }
-                DoubleNumericAttribute<T>& setMin ( const T min0, const T min1 )
+                DoubleNumericAttribute< T >& setMin (const T min0, const T min1)
                 {
                         this->_attr0->setMin ( min0 );
                         this->_attr1->setMin ( min1 );
                         return *this;
                 }
-                DoubleNumericAttribute<T>& setMax ( const T max0, const T max1 )
+                DoubleNumericAttribute< T >& setMax (const T max0, const T max1)
                 {
                         this->_attr0->setMax ( max0 );
                         this->_attr1->setMax ( max1 );
                         return *this;
                 }
-                DoubleNumericAttribute<T>& setDefaultValue ( const T default0, const T default1 )
+                DoubleNumericAttribute< T >& setDefaultValue (const T default0, const T default1)
                 {
                         this->_attr0->setDefaultValue ( default0 );
                         this->_attr1->setDefaultValue ( default1 );
                         return *this;
 
                 }
-                DoubleNumericAttribute<T>& setOutRangeRejected ( void )
+                DoubleNumericAttribute< T >& setOutRangeRejected (void)
                 {
                         this->_attr0->setOutRangeRejected();
                         this->_attr1->setOutRangeRejected();
                         return *this;
                 }
-                DoubleNumericAttribute<T>& setMandatory ( void )
+                DoubleNumericAttribute< T >& setMandatory (void)
                 {
                         this->_attr0->setMandatory();
                         this->_attr1->setMandatory();
                         return *this;
                 }
-                DoubleNumericAttribute<T>& setHidden ( void )
+                DoubleNumericAttribute< T >& setHidden (void)
                 {
                         Attribute::setHidden();
                         return *this;
                 }
-                DoubleNumericAttribute<T>& setMessage ( const std::string& message )
+                DoubleNumericAttribute< T >& setMessage (const std::string& message)
                 {
-                        Attribute::setMessage ( message ) ;
+                        Attribute::setMessage(message);
                         return *this;
                 }
 
@@ -567,18 +561,15 @@ namespace mi4
                         return str;
                 }
         private:
-                std::unique_ptr<NumericAttribute<T> > _attr0;
-                std::unique_ptr<NumericAttribute<T> > _attr1;
+                std::unique_ptr< NumericAttribute< T > > _attr0;
+                std::unique_ptr< NumericAttribute< T > > _attr1;
         };
 
-        template <typename T>
+        template < typename T >
         class TripleNumericAttribute : public Attribute
         {
         public:
-                explicit TripleNumericAttribute ( const std::string& key,  T& v0, T& v1, T& v2 ): Attribute ( key ),
-                        _attr0 ( new NumericAttribute<T> ( key, v0, 1 ) ),
-                        _attr1 ( new NumericAttribute<T> ( key, v1, 2 ) ),
-                        _attr2 ( new NumericAttribute<T> ( key, v2, 3 ) )
+                explicit TripleNumericAttribute (const std::string& key, T& v0, T& v1, T& v2) : Attribute(key), _attr0(new NumericAttribute< T >(key, v0, 1)), _attr1(new NumericAttribute< T >(key, v1, 2)), _attr2(new NumericAttribute< T >(key, v2, 3))
                 {
                         return;
                 }
@@ -588,21 +579,21 @@ namespace mi4
                 {
                         return this->_attr0->parse ( arg ) && this->_attr1->parse ( arg ) && this->_attr2->parse ( arg );
                 }
-                TripleNumericAttribute<T>& setMin ( const T min0, const T min1, const T min2 )
+                TripleNumericAttribute< T >& setMin (const T min0, const T min1, const T min2)
                 {
                         this->_attr0->setMin ( min0 );
                         this->_attr1->setMin ( min1 );
                         this->_attr2->setMin ( min2 );
                         return *this;
                 }
-                TripleNumericAttribute<T>& setMax ( const T max0, const T max1, const T max2 )
+                TripleNumericAttribute< T >& setMax (const T max0, const T max1, const T max2)
                 {
                         this->_attr0->setMax ( max0 );
                         this->_attr1->setMax ( max1 );
                         this->_attr2->setMax ( max2 );
                         return *this;
                 }
-                TripleNumericAttribute<T>& setDefaultValue ( const T default0, const T default1, const T default2 )
+                TripleNumericAttribute< T >& setDefaultValue (const T default0, const T default1, const T default2)
                 {
                         this->_attr0->setDefaultValue ( default0 );
                         this->_attr1->setDefaultValue ( default1 );
@@ -610,28 +601,28 @@ namespace mi4
                         return *this;
 
                 }
-                TripleNumericAttribute<T>& setOutRangeRejected ( void )
+                TripleNumericAttribute< T >& setOutRangeRejected (void)
                 {
                         this->_attr0->setOutRangeRejected();
                         this->_attr1->setOutRangeRejected();
                         this->_attr3->setOutRangeRejected();
                         return *this;
                 }
-                TripleNumericAttribute<T>& setMandatory ( void )
+                TripleNumericAttribute< T >& setMandatory (void)
                 {
                         this->_attr0->setMandatory();
                         this->_attr1->setMandatory();
                         this->_attr2->setMandatory();
                         return *this;
                 }
-                TripleNumericAttribute<T>& setHidden ( void )
+                TripleNumericAttribute< T >& setHidden (void)
                 {
                         Attribute::setHidden();
                         return *this;
                 }
-                TripleNumericAttribute<T>& setMessage ( const std::string& message )
+                TripleNumericAttribute< T >& setMessage (const std::string& message)
                 {
-                        Attribute::setMessage ( message ) ;
+                        Attribute::setMessage(message);
                         return *this;
                 }
                 std::string toString ( void ) const
@@ -645,19 +636,19 @@ namespace mi4
                         return str;
                 }
         private:
-                std::unique_ptr<NumericAttribute<T> > _attr0;
-                std::unique_ptr<NumericAttribute<T> > _attr1;
-                std::unique_ptr<NumericAttribute<T> > _attr2;
+                std::unique_ptr< NumericAttribute< T > > _attr0;
+                std::unique_ptr< NumericAttribute< T > > _attr1;
+                std::unique_ptr< NumericAttribute< T > > _attr2;
         };
 
-        template <typename T>
+        template < typename T >
         class ArrayNumericAttribute : public Attribute
         {
         public:
-                ArrayNumericAttribute ( const std::string& key,  std::vector<T>& values ) : Attribute ( key )
+                ArrayNumericAttribute (const std::string& key, std::vector< T >& values) : Attribute(key)
                 {
-                        for ( size_t i = 0 ; i < values.size() ; ++i ) {
-                                std::unique_ptr<NumericAttribute<T> > attr ( new NumericAttribute<T> ( key, values[i], i + 1 ) );
+                        for ( size_t i = 0; i < values.size(); ++i ) {
+                                std::unique_ptr< NumericAttribute< T > > attr(new NumericAttribute< T >(key, values[i], i + 1));
                                 this->_attrs.push_back ( std::move ( attr ) );
                         }
 
@@ -677,7 +668,7 @@ namespace mi4
                         return true;
                 }
 
-                ArrayNumericAttribute<T>& setMin ( const T min0 )
+                ArrayNumericAttribute< T >& setMin (const T min0)
                 {
                         for ( auto&& attr : this->_attrs ) {
                                 attr->setMin ( min0 );
@@ -685,7 +676,7 @@ namespace mi4
 
                         return *this;
                 }
-                ArrayNumericAttribute<T>& setMax ( const T max0 )
+                ArrayNumericAttribute< T >& setMax (const T max0)
                 {
                         for ( auto&& attr : this->_attrs ) {
                                 attr->setMax ( max0 );
@@ -693,7 +684,7 @@ namespace mi4
 
                         return *this;
                 }
-                ArrayNumericAttribute<T>& setDefaultValue ( const T default0 )
+                ArrayNumericAttribute< T >& setDefaultValue (const T default0)
                 {
                         for ( auto&& attr : this->_attrs ) {
                                 attr->setDefaultValue ( default0 );
@@ -701,7 +692,7 @@ namespace mi4
 
                         return *this;
                 }
-                ArrayNumericAttribute<T>& setOutRangeRejected ( void )
+                ArrayNumericAttribute< T >& setOutRangeRejected (void)
                 {
                         for ( auto&& attr : this->_attrs ) {
                                 attr->setOutRangeRejected();
@@ -709,7 +700,7 @@ namespace mi4
 
                         return *this;
                 }
-                ArrayNumericAttribute<T>& setMandatory ( void )
+                ArrayNumericAttribute< T >& setMandatory (void)
                 {
                         for ( auto&& attr : this->_attrs ) {
                                 attr->setMandatory();
@@ -717,14 +708,14 @@ namespace mi4
 
                         return *this;
                 }
-                ArrayNumericAttribute<T>& setHidden ( void )
+                ArrayNumericAttribute< T >& setHidden (void)
                 {
                         Attribute::setHidden();
                         return *this;
                 }
-                ArrayNumericAttribute<T>& setMessage ( const std::string& message )
+                ArrayNumericAttribute< T >& setMessage (const std::string& message)
                 {
-                        Attribute::setMessage ( message ) ;
+                        Attribute::setMessage(message);
                         return *this;
                 }
 
@@ -739,14 +730,14 @@ namespace mi4
                         return str;
                 }
         private:
-                std::vector< std::unique_ptr<NumericAttribute<T> > > _attrs;
+                std::vector< std::unique_ptr< NumericAttribute< T > > > _attrs;
         };
 
         class AttributeSet : public Attribute
         {
         private:
                 bool _isOr;
-                std::list<std::unique_ptr<Attribute> > _attr;
+                std::list< std::unique_ptr< Attribute > > _attr;
         public:
                 AttributeSet ( void ) : _isOr ( false )
                 {
@@ -754,54 +745,54 @@ namespace mi4
                 }
                 virtual ~AttributeSet ( void ) = default;
 
-                template<typename T>
-                NumericAttribute<T>& createNumericAttribute ( const std::string& key, T& value, const std::string& message = std::string() )
+                template < typename T >
+                NumericAttribute< T >& createNumericAttribute (const std::string& key, T& value, const std::string& message = std::string())
                 {
-                        this->_attr.push_back ( std::unique_ptr<Attribute> ( new NumericAttribute<T> ( key, value, 1 ) ) );
-                        Attribute& attr =  * ( this->_attr.back() );
+                        this->_attr.push_back(std::unique_ptr< Attribute >(new NumericAttribute< T >(key, value, 1)));
+                        Attribute& attr = *(this->_attr.back());
                         attr.setMessage ( message );
-                        return dynamic_cast<NumericAttribute<T>& > ( attr );
+                        return dynamic_cast<NumericAttribute< T >& > ( attr );
                 }
 
-                template<typename T>
-                DoubleNumericAttribute<T>& createDoubleNumericAttribute ( const std::string& key, T& value0, T& value1, const std::string& message = std::string() )
+                template < typename T >
+                DoubleNumericAttribute< T >& createDoubleNumericAttribute (const std::string& key, T& value0, T& value1, const std::string& message = std::string())
                 {
-                        this->_attr.push_back ( std::unique_ptr<Attribute> ( new DoubleNumericAttribute<T> ( key, value0, value1 ) ) );
-                        Attribute& attr =  * ( this->_attr.back() );
+                        this->_attr.push_back(std::unique_ptr< Attribute >(new DoubleNumericAttribute< T >(key, value0, value1)));
+                        Attribute& attr = *(this->_attr.back());
                         attr.setMessage ( message );
-                        return dynamic_cast<DoubleNumericAttribute<T>& > ( attr );
+                        return dynamic_cast<DoubleNumericAttribute< T >& > ( attr );
                 }
 
-                template<typename T>
-                TripleNumericAttribute<T>& createTripleNumericAttribute ( const std::string& key, T& value0, T& value1, T& value2, const std::string& message = std::string() )
+                template < typename T >
+                TripleNumericAttribute< T >& createTripleNumericAttribute (const std::string& key, T& value0, T& value1, T& value2, const std::string& message = std::string())
                 {
-                        this->_attr.push_back ( std::unique_ptr<Attribute> ( new TripleNumericAttribute<T> ( key, value0, value1, value2 ) ) );
-                        Attribute& attr =  * ( this->_attr.back() );
+                        this->_attr.push_back(std::unique_ptr< Attribute >(new TripleNumericAttribute< T >(key, value0, value1, value2)));
+                        Attribute& attr = *(this->_attr.back());
                         attr.setMessage ( message );
-                        return dynamic_cast<TripleNumericAttribute<T>& > ( attr );
+                        return dynamic_cast<TripleNumericAttribute< T >& > ( attr );
                 }
 
-                template<typename T>
-                ArrayNumericAttribute<T>& createArrayNumericAttribute ( const std::string& key, std::vector<T>& values, const std::string& message = std::string() )
+                template < typename T >
+                ArrayNumericAttribute< T >& createArrayNumericAttribute (const std::string& key, std::vector< T >& values, const std::string& message = std::string())
                 {
-                        this->_attr.push_back ( std::unique_ptr<Attribute> ( new ArrayNumericAttribute<T> ( key, values ) ) );
-                        Attribute& attr =  * ( this->_attr.back() );
+                        this->_attr.push_back(std::unique_ptr< Attribute >(new ArrayNumericAttribute< T >(key, values)));
+                        Attribute& attr = *(this->_attr.back());
                         attr.setMessage ( message );
-                        return dynamic_cast<ArrayNumericAttribute<T>& > ( attr );
+                        return dynamic_cast<ArrayNumericAttribute< T >& > ( attr );
                 }
 
                 StringAttribute& createStringAttribute ( const std::string& key, std::string& value, const std::string& message = std::string() )
                 {
-                        this->_attr.push_back ( std::unique_ptr<Attribute> ( new StringAttribute ( key, value ) ) );
-                        Attribute& attr =  * ( this->_attr.back() );
+                        this->_attr.push_back(std::unique_ptr< Attribute >(new StringAttribute(key, value)));
+                        Attribute& attr = *(this->_attr.back());
                         attr.setMessage ( message );
                         return dynamic_cast<StringAttribute& > ( attr );
                 }
 
                 BooleanAttribute& createBooleanAttribute ( const std::string& key, bool& value, const std::string& message = std::string() )
                 {
-                        this->_attr.push_back (  std::unique_ptr<Attribute> ( new BooleanAttribute ( key, value ) ) );
-                        Attribute& attr =  * ( this->_attr.back() );
+                        this->_attr.push_back(std::unique_ptr< Attribute >(new BooleanAttribute(key, value)));
+                        Attribute& attr = *(this->_attr.back());
                         attr.setMessage ( message );
                         return dynamic_cast<BooleanAttribute& > ( attr );
                 }
@@ -840,9 +831,7 @@ namespace mi4
 
                 void printUsage ( const std::string cmdStr )
                 {
-                        std::cerr << "Usage : " << cmdStr << " [OPTIONS]" << std::endl
-                                  << std::endl
-                                  << "OPTIONS:" << std::endl;
+                        std::cerr << "Usage : " << cmdStr << " [OPTIONS]" << std::endl << std::endl << "OPTIONS:" << std::endl;
                         this->print_usage();
                 }
 
@@ -891,7 +880,7 @@ namespace mi4
 
         protected:
                 virtual bool init ( const Argument& arg ) = 0;
-                virtual bool run  ( void ) = 0;
+                virtual bool run (void) = 0;
                 virtual bool term ( void ) = 0;
 
                 AttributeSet& getAttributeSet ( void )
@@ -918,7 +907,7 @@ namespace mi4
                 static int execute ( ProgramTemplate& cmd, Argument& arg )
                 {
                         if ( arg.exist ( "--debug" ) ) {
-                                cmd.set_debug_mode_on ();
+                                cmd.set_debug_mode_on();
                                 std::cerr << "debug mode on." << std::endl;
                         }
 
@@ -931,19 +920,19 @@ namespace mi4
                                 std::cerr << "initialization failed." << std::endl;
                                 cmd.usage();
                                 return -1;
-                        } else if ( !cmd.run()  ) {
+                        } else if ( !cmd.run()) {
                                 std::cerr << "main routine failed." << std::endl;
                                 return -2;
                         } else if ( !cmd.term() ) {
                                 std::cerr << "termination failed." << std::endl;
                                 return -3;
                         } else {
-                                return 0; // SUCCESS 
+                                return 0; // SUCCESS
                         }
                 }
         private:
-                std::string  _cmdStr;
-                std::unique_ptr<AttributeSet> _attr;
+                std::string _cmdStr;
+                std::unique_ptr< AttributeSet > _attr;
                 bool _isDebugModeOn;
         };//class ProgramTemplate
 }//namespace mi

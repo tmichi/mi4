@@ -102,11 +102,11 @@ namespace mi4
                                         for ( auto y = 0 ; y < size.y() ; ++y ) {
                                                 idx.push_back ( static_cast<int> ( codes.size() ) );
                                                 auto start = 0;
-                                                auto value0 = data.get ( start, y, z );
+                                                auto value0 = data.at(start, y, z);
                                                 short int length = 1;
 
                                                 for ( auto x = 1 ; x < size.x() ; ++x ) {
-                                                        const auto value1 = data.get ( x, y, z );
+                                                        const auto value1 = data.at(x, y, z);
 
                                                         if ( value0 == value1 ) {
                                                                 ++length;
@@ -282,7 +282,7 @@ namespace mi4
                         const auto length = code.getLength();
 
                         for ( auto j = 0 ; j < length ; ++j ) {
-                                labelData.set ( start.x() + j, start.y(), start.z(), label );
+                                labelData.at(start.x() + j, start.y(), start.z()) = label;
                         }
                 }
 

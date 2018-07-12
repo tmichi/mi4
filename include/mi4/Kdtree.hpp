@@ -74,17 +74,15 @@ namespace mi4
                         void find (const T& p, const double radius, typename std::list< T >& result)
                         {
                                 if ( this->isLeaf() ) {
-                                        std::copy_if(this->_points.begin(), this->_points.end(),
-                                                     std::back_inserter(result),
-                                                     [ sqr = radius * radius, p ] (const T& x) {
-                                                             double d2 = 0;
+                                        std::copy_if(this->_points.begin(), this->_points.end(), std::back_inserter(result), [ sqr = radius * radius, p ] (const T& x) {
+                                                double d2 = 0;
 
-                                                             for ( size_t i = 0; i < Dim; i++ ) {
-                                                                     d2 += (x[i] - p[i]) * (x[i] - p[i]);
+                                                for ( size_t i = 0; i < Dim; i++ ) {
+                                                        d2 += (x[i] - p[i]) * (x[i] - p[i]);
                                                 }
 
-                                                             return d2 <= sqr;
-                                                     });
+                                                return d2 <= sqr;
+                                        });
                                 } else {
                                         if ( std::fabs(this->_points.front()[this->dim()] - p[this->dim()]) <=
                                              radius ) {
@@ -131,19 +129,24 @@ namespace mi4
                         int8_t find_separation_axis (vecIter begin, vecIter end) const
                         {
                                 auto bmin = *begin, bmax = *begin;
+
                                 for ( auto iter = begin; iter != end; ++iter ) {
                                         auto p = *iter;
+
                                         for ( size_t i = 0; i < Dim; ++i ) {
                                                 bmin[i] = std::min(p[i], bmin[i]);
                                                 bmax[i] = std::max(p[i], bmax[i]);
                                         }
                                 }
+
                                 auto dev = std::make_tuple(uint8_t(0), bmax[0] - bmin[0]);
+
                                 for ( size_t i = 0; i < Dim; i++ ) {
                                         if ( std::get< 1 >(dev) < bmax[i] - bmin[i] ) {
                                                 dev = std::make_tuple(i, bmax[i] - bmin[i]);
                                         }
                                 }
+
                                 return std::get< 0 >(dev);
                         }
                 };
@@ -158,8 +161,7 @@ namespace mi4
                 size_t _numElement;
                 size_t _numMaxElementsPerNode;
         public:
-                explicit Kdtree (std::vector< T >& points = std::vector< T >(), const size_t numMaxElementsPerNode = 10)
-                        : _parent(new Node), _numElement(0), _numMaxElementsPerNode(numMaxElementsPerNode)
+                explicit Kdtree (std::vector< T >& points = std::vector< T >(), const size_t numMaxElementsPerNode = 10) : _parent(new Node), _numElement(0), _numMaxElementsPerNode(numMaxElementsPerNode)
                 {
                         this->build(points);
                 }
@@ -222,14 +224,14 @@ namespace mi4
                 void sort_result_by_distance (const T& p, std::list< T >& nodes)
                 {
                         nodes.sort([ &p ] (const T& a, const T& b) {
-                                double ra = 0, rb = 0;
+                                std::tuple< double, double > x = std::make_tuple(0, 0);
 
                                 for ( size_t i = 0; i < Dim; i++ ) {
-                                        ra += (a[i] - p[i]) * (a[i] - p[i]);
-                                        rb += (b[i] - p[i]) * (b[i] - p[i]);
+                                        std::get< 0 >(x) += (a[i] - p[i]) * (a[i] - p[i]);
+                                        std::get< 1 >(x) += (b[i] - p[i]) * (b[i] - p[i]);
                                 }
 
-                                return ra < rb;
+                                return std::get< 0 >(x) < std::get< 1 >(x);
                         });
                 }
         };

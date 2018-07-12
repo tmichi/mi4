@@ -225,13 +225,13 @@ namespace mi4
                                         return false;
                                 }
 
-                                if (type == OctreeNodeType::INTERMEDIATE) {
+                                if ( type == OctreeNodeType::INTERMEDIATE ) {
                                         for ( int i = 0 ; i < NUM_CHILDREN ; ++i ) {
                                                 if ( ! this->child ( i ).write ( fout, emptyValue ) ) {
                                                         return false;
                                                 }
                                         }
-                                } else if (type == OctreeNodeType::LEAF) {
+                                } else if ( type == OctreeNodeType::LEAF ) {
                                         return fout.write ( ( char* ) ( & ( this->value() ) ), sizeof ( T ) ).good();
                                 }
 
@@ -246,12 +246,12 @@ namespace mi4
                                         return false;
                                 }
 
-                                if (type == OctreeNodeType::EMPTY) {
+                                if ( type == OctreeNodeType::EMPTY ) {
                                         this->value() = emptyValue;
                                         return true;
-                                } else if (type == OctreeNodeType::LEAF) {
+                                } else if ( type == OctreeNodeType::LEAF ) {
                                         return fin.read ( ( char* ) ( &this->value() ), sizeof ( T ) ).good();
-                                } else if (type == OctreeNodeType::INTERMEDIATE) {
+                                } else if ( type == OctreeNodeType::INTERMEDIATE ) {
                                         this->create_children();
 
                                         for ( int i = 0 ; i < NUM_CHILDREN ; ++i ) {

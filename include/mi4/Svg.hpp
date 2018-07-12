@@ -44,11 +44,7 @@ namespace mi4
                 {
                         this->init();
                         this->setViewBox ( 0, 0, this->_size.x, this->_size.y );
-
-                        auto& root = this->_xmldoc->getRoot();
-                        root.addAttribute ( "xmlns", "http://www.w3.org/2000/svg" );
-                        root.addAttribute ( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
-                        root.addAttribute ( "width",  this->_size.x ).addAttribute ( "height", this->_size.y );
+                        this->_xmldoc->getRoot().addAttribute("xmlns", "http://www.w3.org/2000/svg").addAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink").addAttribute("width", this->_size.x).addAttribute("height", this->_size.y);
                         return;
                 }
 
@@ -138,12 +134,9 @@ namespace mi4
                 void drawRect ( const double x0, const double y0, const double w, const double h )
                 {
                         auto p = this->convertTo(Svg::Vector2d(x0, y0));
-                        auto size = this->convertTo(Svg::Vector2d(w + x0, h + y0));
+                        auto size = this->convertTo(Svg::Vector2d(w, h)); //@todo check required.
                         auto& element = this->_xmldoc->getRoot().addChildElement ( "rect" );
-                        element.addAttribute("x", p.x).addAttribute("y", p.y).addAttribute("width",
-                                                                                           size.x).addAttribute(
-                                "height", size.y).addAttribute("stroke-width", this->_stroke_width).addAttribute(
-                                "stroke", this->_stroke_color);
+                        element.addAttribute("x", p.x).addAttribute("y", p.y).addAttribute("width", size.x).addAttribute("height", size.y).addAttribute("stroke-width", this->_stroke_width).addAttribute("stroke", this->_stroke_color);
 
                         if ( this->_stroke_dashed > 0 ) {
                                 element.addAttribute ( "stroke-dasharray", this->_stroke_dashed );

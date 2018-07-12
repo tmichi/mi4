@@ -10,8 +10,8 @@ set(mi4_VERSION_PATCH 0)
 # set(CMAKE_VERBOSE_MAKEFILE 1) #コンパイルオプションを表示
 # set(CMAKE_INSTALL_PREFIX "./ex")
 ENABLE_TESTING()
-# set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Release)
 # set(CMAKE_BUILD_TYPE RelWithDebInfo)
 # set(CMAKE_BUILD_TYPE MinSizeRel)
 #

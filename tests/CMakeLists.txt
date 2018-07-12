@@ -1,5 +1,6 @@
 INCLUDE_DIRECTORIES( ../include)
 file(GLOB TEST_SOURCES "*Test.cpp")
-ADD_EXECUTABLE(mi4test ${TEST_SOURCES} mi4test_main.cpp)
+file(GLOB INCLUDE_SOURCES "../include/mi4/*.hpp")
+ADD_EXECUTABLE(mi4test ${TEST_SOURCES} ${INCLUDE_SOURCES} mi4test_main.cpp)
 TARGET_LINK_LIBRARIES( mi4test Eigen3::Eigen)
 ADD_TEST(mi4test mi4test)

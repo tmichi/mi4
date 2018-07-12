@@ -21,15 +21,14 @@ namespace mi4
         {
         public:
                 enum time_format {
-                        TIME_MILI_SECOND,
                         TIME_SECOND, ///< Seconds.
                         TIME_MINUTE, ///< Minutes.
                         TIME_HOUR,   ///< Hours.
                         TIME_AUTO    ///< Default.
                 };
         private:
-                typedef std::chrono::high_resolution_clock clock;
-                typedef clock::time_point clock_t;
+                using clock = std::chrono::high_resolution_clock;
+                using clock_t = clock::time_point;
 
                 Timer ( const Timer& that ) = delete;
                 Timer& operator = ( const Timer& that ) = delete;
@@ -40,40 +39,35 @@ namespace mi4
                  * @param [in] key keyword of the timer.
                  * @param [in] isAutoPrint set true when the duration is printed automatically.
                  */
-                explicit Timer ( const std::string& key = std::string ( "time" ), const bool isAutoPrint = true ) : _key ( key ), _isAutoPrint ( isAutoPrint ), _begin ( clock::now() ), _time ( -1 )
-                {
-                        return;
-                }
+                explicit Timer (const std::string& key = std::string("time"), const bool isAutoPrint = true) : _key(key), _isAutoPrint(isAutoPrint), _begin(clock::now()), _time(-1) {}
 
                 ~Timer ( void )
                 {
                         if ( this->_isAutoPrint ) {
-                                if ( this->_time < 0 ) {
-                                        this->end();
-                                }
-
+                                this->end();
                                 std::cerr << this->toString() << std::endl;
                         }
                 }
 
-                void stop ( void )
+                void end (void)
                 {
-                        this->_time = std::chrono::duration_cast<std::chrono::milliseconds> ( clock::now() - this->_begin ).count() * 0.001;
-                }
-                void end ( void )
-                {
-                        return this->stop();
-                        return;
+                        this->_time = (this->_time < 0) ? -1 : std::chrono::duration_cast< std::chrono::milliseconds >(clock::now() - this->_begin).count() * 0.001;
                 }
 
-                std::string key ( void ) const
+                std::string getKey (void) const
                 {
                         return this->_key;
                 }
 
                 double time ( const time_format format = TIME_SECOND ) const
                 {
-                        return this->_time * this->get_scale ( format );
+                        if ( format == TIME_HOUR ) {
+                                return this->_time / 3600.0;
+                        } else if ( format == TIME_MINUTE ) {
+                                return this->_time / 60.0;
+                        } else {
+                                return this->_time;
+                        }
                 }
 
                 std::string toString ( const int digit = 6, const time_format format = TIME_AUTO ) const
@@ -82,23 +76,11 @@ namespace mi4
                                 return this->toString ( digit, this->estimate_format ( this->_time ) );
                         } else {
                                 std::stringstream ss;
-                                ss << this->key() << ": \t" << std::setprecision ( digit ) << this->time ( format )
-                                   << " " << this->get_format_string ( format );
+                                ss << this->getKey() << ": \t" << std::setprecision(digit) << this->time(format) << " " << this->get_format_string(format);
                                 return ss.str();
                         }
                 }
         private:
-                inline double get_scale ( const time_format format ) const
-                {
-                        if      ( format == TIME_HOUR   ) {
-                                return 1.0 / 3600.0;
-                        } else if ( format == TIME_MINUTE ) {
-                                return 1.0 / 60.0;
-                        } else {
-                                return 1.0;
-                        }
-                }
-
                 inline time_format estimate_format ( const double t ) const
                 {
                         if      ( t < 60   ) {
@@ -119,7 +101,7 @@ namespace mi4
                         } else if ( format == TIME_HOUR   ) {
                                 return std::string ( "[h]" );
                         } else {
-                                return std::string ( "[?]" );
+                                return std::string("[?]"); // never called.
                         }
                 }
         private:

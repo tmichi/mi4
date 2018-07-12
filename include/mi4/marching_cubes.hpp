@@ -375,6 +375,7 @@ namespace mi4
                                         index.push_back ( mesh.addPoint ( ep[ mc_idxtable[i + j ] ] ) );
                                         isovalue.push_back ( static_cast<float> ( iso[mc_idxtable[i + j] ] ) );
                                 }
+
                                 mesh.addFace ( index );
                         }
                 }

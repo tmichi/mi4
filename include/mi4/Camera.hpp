@@ -11,7 +11,7 @@ namespace mi4
         class Camera
         {
         public:
-                Camera ( void ) : _rotation ( Eigen::Quaterniond ( 1, 0, 0, 0 ) ), _center ( Eigen::Vector3d() ), _dist ( 0 ), _radius ( 100 ), _fov ( 40 )
+                Camera (void) : _rotation(Eigen::Quaterniond(1, 0, 0, 0)), _center(Eigen::Vector3d(0, 0, 0)), _dist(0), _radius(100), _fov(40)
                 {
                         Eigen::Vector3d b ( 1, 1, 1 );
                         b.normalize();
@@ -60,7 +60,7 @@ namespace mi4
 
                 void zoom ( bool isUp  )
                 {
-			this->_dist *= isUp ? 0.99 : 1.0 / 0.99;
+                        this->_dist *= isUp ? 0.99 : 1.0 / 0.99;
                 }
 
                 void getZNearFar ( double& zNear, double& zFar )
@@ -70,8 +70,8 @@ namespace mi4
 
                         zNear = dist - radius;
                         zFar  = dist + radius;
-			
-			zNear = std::max ( 0.01, zNear);
+
+                        zNear = std::max(0.01, zNear);
 
                 }
 
@@ -90,7 +90,7 @@ namespace mi4
                                 return;
                         }
 
-                        double radius_virtual_sphere = 0.9; // @todo move to attribute  
+                        double radius_virtual_sphere = 0.9; // @todo move to attribute
                         this->project_onto_sphere ( radius_virtual_sphere, oldp );
                         this->project_onto_sphere ( radius_virtual_sphere, newp );
                         Eigen::Quaterniond dr;
