@@ -31,7 +31,7 @@ public:
                 mi4::VolumeInfo info(mi4::Point3i(300, 200, 100), mi4::Point3d(0.2, 0.3, 0.4), mi4::Point3d(0.1, 0.2, 0.3));
 
                 auto size = info.getSize();
-                ASSERT_EQUALS(mi4::Point3i(300, 200, 101).transpose(), size.transpose());
+                ASSERT_EQUALS(mi4::Point3i(300, 200, 100).transpose(), size.transpose());
 
                 auto pitch = info.getPitch();
                 ASSERT_EPSILON_EQUALS_DEFAULT(0.2, pitch.x());

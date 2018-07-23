@@ -39,7 +39,9 @@ namespace mi4
                  * @param [in] key keyword of the timer.
                  * @param [in] isAutoPrint set true when the duration is printed automatically.
                  */
-                explicit Timer (const std::string& key = std::string("time"), const bool isAutoPrint = true) : _key(key), _isAutoPrint(isAutoPrint), _begin(clock::now()), _time(-1) {}
+                explicit Timer (const std::string& key = std::string("time"), const bool isAutoPrint = true) : _key(key), _isAutoPrint(isAutoPrint), _begin(clock::now()), _time(-1) {
+		  return;
+		}
 
                 ~Timer ( void )
                 {
@@ -51,7 +53,9 @@ namespace mi4
 
                 void end (void)
                 {
-                        this->_time = (this->_time < 0) ? -1 : std::chrono::duration_cast< std::chrono::milliseconds >(clock::now() - this->_begin).count() * 0.001;
+		  if ( this->_time < 0 ) {
+		    this->_time =  std::chrono::duration_cast< std::chrono::milliseconds >(clock::now() - this->_begin).count() * 0.001;
+		  }
                 }
 
                 std::string getKey (void) const

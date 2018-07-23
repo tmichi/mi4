@@ -10,8 +10,8 @@ set(mi4_VERSION_PATCH 0)
 # set(CMAKE_VERBOSE_MAKEFILE 1) #コンパイルオプションを表示
 # set(CMAKE_INSTALL_PREFIX "./ex")
 ENABLE_TESTING()
-set(CMAKE_BUILD_TYPE Debug)
-# set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Debug)
+ set(CMAKE_BUILD_TYPE Release)
 # set(CMAKE_BUILD_TYPE RelWithDebInfo)
 # set(CMAKE_BUILD_TYPE MinSizeRel)
 #
@@ -40,6 +40,8 @@ find_package(Eigen3 3.0 REQUIRED)
 
 set(MI4_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include")
 include_directories (${MI4_INCLUDE_DIRS})
+
+include_directories (~/include)
 
 if(MSVC) #Visual Studio
         #Use static library
