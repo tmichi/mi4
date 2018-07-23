@@ -8,6 +8,7 @@ int main ( int argc, char** argv )
 
         mi4::Range range ( mi4::Point3i ( 5, 5, 5 ), mi4::Point3i ( 8, 9, 10 ) );
 
+        std::cerr << volume.getInfo().toStringMetaData() << std::endl;
         for ( auto&& iter : range ) {
                 std::cerr << iter.transpose() << std::endl;
         }

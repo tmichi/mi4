@@ -11,45 +11,47 @@
 
 namespace mi4
 {
+        /*
         enum XmlNodeType : uint8_t {
-                InvalidNode,
                 ElementNode,
                 TextNode
         };
-
-        class XmlNode
-        {
+*/
+        class XmlNode {
         private:
-                XmlNode ( const XmlNode& ) = delete;
-                XmlNode ( XmlNode&& ) = delete;
-                void operator = ( const XmlNode& ) = delete;
-                void operator = ( XmlNode&& ) = delete;
+                XmlNode (const XmlNode& ) = delete;
+                XmlNode (XmlNode&& ) = delete;
+                void operator = (const XmlNode& ) = delete;
+                void operator = (XmlNode&& ) = delete;
         protected:
-                XmlNode ( void ) = default;
+                XmlNode (void ) = default;
         public:
-                virtual ~XmlNode ( void ) = default;
-                virtual XmlNodeType getType ( void ) const = 0;
-                virtual bool isLeaf ( void ) const = 0;
-                virtual void write ( std::ostream& os, const size_t = 0 ) = 0;
+                virtual ~XmlNode (void ) = default;
+                //virtual XmlNodeType getType ( void ) const = 0;
+                virtual bool isLeaf (void ) const = 0;
+                virtual void write (std::ostream& os, const size_t = 0 ) = 0;
+                virtual bool isElement (void) const
+                {
+                        return false;
+                }
         };
 
         class XmlText : public XmlNode
         {
         private:
-                std::string _text;
+                std::string text_;
         public:
-                XmlText ( const std::string& text ) : XmlNode(),  _text ( text )
+                XmlText (const std::string& text) : XmlNode(), text_(text)
                 {
-                        return;
                 }
 
                 ~XmlText ( void ) = default;
-
+/*
                 XmlNodeType getType  ( void ) const
                 {
                         return TextNode;
                 }
-
+*/
                 bool isLeaf ( void ) const
                 {
                         return true;
@@ -57,49 +59,56 @@ namespace mi4
 
                 const std::string& getText ( void ) const
                 {
-                        return this->_text;
+                        return this->text_;
                 }
 
                 void write ( std::ostream& os, const size_t indent = 0 )
                 {
-                        os << std::string ( indent * 4, ' ' ) << this->getText() << std::endl;
+                        os << std::string(indent, ' ') << this->getText() << std::endl;
                 }
         };
 
         class XmlElement : public XmlNode
         {
         private:
-                std::string _name; // element name
-                std::list< std::unique_ptr< XmlNode > > _children; // child nodes.
-                std::map< std::string, std::string > _attributes; // attributes
+                std::string name_; // element name
+                std::list< std::unique_ptr< XmlNode > > children_; // child nodes.
+                std::map< std::string, std::string > attributes_; // attributes
         public:
-                XmlElement ( const std::string& name ) : XmlNode (), _name ( name )
+                XmlElement (const std::string& name) : XmlNode(), name_(name)
                 {
                         return;
                 }
 
                 virtual ~XmlElement ( void ) = default;
 
-                virtual XmlNodeType getType ( void ) const
+                /*
+                XmlNodeType getType ( void ) const
                 {
                         return ElementNode;
                 }
+                 */
 
-                virtual bool isLeaf ( void ) const
+                bool isElement (void) const
                 {
-                        return this->_children.size() == 0;
+                        return true;
+                }
+
+                bool isLeaf (void) const
+                {
+                        return this->children_.size() == 0;
                 }
 
                 XmlElement& addChildElement ( const std::string& name )
                 {
-                        this->_children.emplace_back ( new XmlElement ( name )  );
-                        return dynamic_cast<XmlElement&> ( * ( this->_children.back().get() ) );
+                        this->getChildren().emplace_back(new XmlElement(name));
+                        return dynamic_cast<XmlElement&> ( *(this->getChildren().back().get()));
                 }
 
                 XmlText& addChildText ( const std::string& str )
                 {
-                        this->_children.emplace_back ( new XmlText ( str ) );
-                        return dynamic_cast<XmlText&> ( * ( this->_children.back().get() ) );
+                        this->children_.emplace_back(new XmlText(str));
+                        return dynamic_cast<XmlText&> ( *(this->getChildren().back().get()));
                 }
 
                 template <typename T>
@@ -107,54 +116,52 @@ namespace mi4
                 {
                         std::stringstream ss;
                         ss << value;
-                        this->_attributes[key] = ss.str();
+                        this->attributes_[key] = ss.str();
                         return *this;
                 }
 
                 std::list< std::unique_ptr<XmlNode> >& getChildren ( void )
                 {
-                        return this->_children;
+                        return this->children_;
                 }
 
-                const std::map<std::string, std::string>& getAttributes ( void ) const
+                std::map< std::string, std::string >& getAttributes (void)
                 {
-                        return this->_attributes;
+                        return this->attributes_;
                 }
 
                 std::string getAttribute ( const std::string& key ) const
                 {
-                        const auto& iter = this->_attributes.find ( key );
-                        return (iter != this->_attributes.end()) ? iter->second : std::string();
+                        return const_cast<XmlElement *>(this)->attributes_[key];
                 }
 
                 const std::string& getName ( void ) const
                 {
-                        return this->_name;
+                        return this->name_;
                 }
 
                 std::string toString ( const size_t indent = 0 ) const
                 {
                         std::stringstream ss;
-                        const_cast<XmlElement*> ( this )->write ( ss, 0 );
+                        const_cast<XmlElement *>( this )->write(ss, indent);
                         return ss.str();
                 }
         private:
                 void write ( std::ostream& os, const size_t indent = 0 )
                 {
-                        os << std::string ( indent * 4, ' ' ) << "<" << this->getName() ;
-
-                        for ( const auto& iter : this->_attributes ) {
+                        os << std::string(indent, ' ') << "<" << this->getName();
+                        for ( const auto& iter : this->getAttributes()) {
                                 os << " " << iter.first << "=" << std::quoted ( iter.second );
                         }
 
-                        os << (this->_children.empty() ? "/>" : ">") << std::endl;
-
-                        if ( !this->_children.empty()) {
-                                for ( const auto& iter : this->_children ) {
-                                        iter->write(os, indent + 1);
+                        if ( this->children_.empty()) {
+                                os << "/>" << std::endl;
+                        } else {
+                                os << ">" << std::endl;
+                                for ( const auto& iter : this->getChildren()) {
+                                        iter->write(os, indent + 4);
                                 }
-
-                                os << std::string ( indent * 4, ' ' ) << "</" << this->getName() << ">" << std::endl;
+                                os << std::string(indent, ' ') << "</" << this->getName() << ">" << std::endl;
                         }
 
                         return;
@@ -169,7 +176,7 @@ namespace mi4
                 void operator = ( const XmlDocument& that )  = delete;
                 void operator = ( XmlDocument&& that )  = delete;
         public:
-                XmlDocument ( const std::string& name ) : _root ( new  XmlElement ( name ) )
+                XmlDocument (const std::string& name) : root_(new XmlElement(name))
                 {
                         return;
                 }
@@ -178,20 +185,26 @@ namespace mi4
 
                 XmlElement& getRoot ( void )
                 {
-                        return * ( this->_root );
+                        return *(this->root_);
                 }
 
                 std::string toString ( void ) const
                 {
                         std::stringstream ss;
-                        const std::string xmlVersion("1.0");
-                        const std::string encoding("UTF-8");
-                        ss << "<?xml version=" << std::quoted(xmlVersion) << " encoding=" << std::quoted(encoding) << " ?>" << std::endl;
-                        ss << this->_root->toString();
+                        ss << "<?xml version=" << std::quoted("1.0") << " encoding=" << std::quoted("UTF-8") << " ?>" << std::endl;
+                        ss << this->root_->toString(0);
                         return ss.str();
                 }
         private:
-                std::unique_ptr<XmlElement> _root;
+                std::unique_ptr< XmlElement > root_;
         };
 }
 #endif// MI_XML_HPP
+
+
+
+
+
+
+
+

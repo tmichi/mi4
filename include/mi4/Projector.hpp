@@ -28,10 +28,10 @@ namespace mi4
                 Eigen::Vector2d project ( const Eigen::Vector3d& p, double* depth )
                 {
                         const auto& vp = this->_viewport;
-                        const auto p0 = this->_matrix * Eigen::Vector4d(p.x(), p.y(), p.z(), 1);
+                        const auto p0 = this->_matrix * p.homogeneous();
 
                         if ( p0.w() == 0 ) {
-                                return Eigen::Vector2d();
+                                return Eigen::Vector2d(0, 0);
                         }
 
                         *depth = (1.0 + p0.z() / p0.w()) * 0.5;
@@ -42,8 +42,9 @@ namespace mi4
                 {
                         const auto& inv_matrix = this->_inv_matrix;
                         const auto& vp = this->_viewport;
-                        const Eigen::Vector4d p1 = inv_matrix * Eigen::Vector4d((wp.x() - vp[0]) * 2 / vp[2] - 1.0, (wp.y() - vp[1]) * 2 / vp[3] - 1.0, 2.0 * depth - 1.0, 1.0);
-                        return (p1.w() != 0.0) ? 1.0 / p1.w() * Eigen::Vector3d(p1.x(), p1.y(), p1.z()) : Eigen::Vector3d();
+                        const Eigen::Vector4d p0((wp.x() - vp[0]) * 2 / vp[2] - 1.0, (wp.y() - vp[1]) * 2 / vp[3] - 1.0, 2.0 * depth - 1.0, 1.0);
+                        const Eigen::Vector4d p1 = inv_matrix * p0;
+                        return (p1.w() != 0.0) ? p1.hnormalized() : Eigen::Vector3d(0, 0, 0);
                 }
         private:
                 const Eigen::Matrix4d _matrix;

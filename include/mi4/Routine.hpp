@@ -5,10 +5,6 @@
 #include <deque>
 namespace mi4
 {
-        /**
-         *
-         *
-         */
         class Routine
         {
         private:
@@ -19,9 +15,10 @@ namespace mi4
         private:
                 const std::string _name;
                 bool _status;
+                std::ostream& _os;
                 std::deque<std::string> _messages;
         protected:
-                explicit Routine ( const std::string& name ) : _name ( name ), _status ( true )
+                explicit Routine (const std::string& name, std::ostream& os = std::cerr) : _name(name), _os(os), _status(true)
                 {
                         std::cerr << "Starting " << this->_name << " routine ... ";
                         return;
@@ -29,15 +26,12 @@ namespace mi4
         public:
                 virtual ~Routine ( void )
                 {
-                        std::cerr << std::endl;
-
                         if ( this->check() ) {
                                 std::cerr << " done." << std::endl;
                         } else {
                                 std::cerr << " failed." << std::endl;
-
                                 for ( auto& s : this->_messages ) {
-                                        std::cerr << s << std::endl;
+                                        this->_os << s << std::endl;
                                 }
                         }
                 }

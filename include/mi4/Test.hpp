@@ -19,9 +19,10 @@ namespace mi4
 {
         class TestCase;
 
-        static void AddTestCase (TestCase *testcase);
+        static void AddTestCase (TestCase *testCase);
 
-#define ASSERT_EQUALS(expectedValue, actualValue)                  if(!TestCase::checkEquals( __FILE__, __LINE__, expectedValue, actualValue))return
+#define ASSERT_EQUALS(expectedValue, actualValue)                  if(!TestCase::checkEquals( __FILE__, __LINE__,        expectedValue, actualValue))return
+#define ASSERT_NOT_EQUALS(expectedValue, actualValue)                  if(!TestCase::checkNotEquals( __FILE__, __LINE__,        expectedValue, actualValue))return
 #define ASSERT_EPSILON_EQUALS_DEFAULT(expectedValue, actualValue)  if(!TestCase::checkEpsilonEquals( __FILE__, __LINE__, expectedValue, actualValue))return
 #define ASSERT_EPSILON_EQUALS(expectedValue, actualValue, epsilon) if(!TestCase::checkEpsilonEquals( __FILE__, __LINE__, expectedValue, actualValue, epsilon))return
 
@@ -37,7 +38,7 @@ namespace mi4
                 TestCase (TestCase&&) = delete;
                 void operator = (TestCase&&) = delete;
         public:
-                explicit TestCase (const std::string& testName) : _testName(testName)
+                explicit TestCase (const std::string& testName) : testName_(testName)
                 {
                         mi4::AddTestCase ( this );
                 }
@@ -46,14 +47,14 @@ namespace mi4
 
                 void add (void ( *test ) (void))
                 {
-                        this->_tests.push_back ( test );
+                        this->tests_.push_back(test);
                 }
 
                 void run ( void )
                 {
                         this->init();
 
-                        for ( auto&& iter : this->_tests ) {
+                        for ( auto&& iter : this->tests_ ) {
                                 const auto numError = TestCase::getNumErrors();
                                 ( *iter )();
                                 std::cerr << ((numError == TestCase::getNumErrors()) ? "." : "!");
@@ -65,7 +66,7 @@ namespace mi4
 
                 std::string getTestName ( void ) const
                 {
-                        return this->_testName;
+                        return this->testName_;
                 }
 
                 static size_t getNumErrors (void)
@@ -87,6 +88,12 @@ namespace mi4
                 }
 
                 template < typename T >
+                static bool checkNotEquals (const std::string& fileName, const int lineNo, const T expectedValue, const T actualValue)
+                {
+                        return (expectedValue != actualValue) ? true : TestCase::add_error_message_not(fileName, lineNo, expectedValue, actualValue);
+                }
+
+                template < typename T >
                 static bool checkEquals (const std::string& fileName, const int lineNo, const T expectedValue, const T actualValue)
                 {
                         return (expectedValue == actualValue) ? true : TestCase::add_error_message(fileName, lineNo, expectedValue, actualValue);
@@ -95,20 +102,37 @@ namespace mi4
                 template < typename T >
                 static bool checkEpsilonEquals (const std::string& fileName, const int lineNo, const T expectedValue, const T actualValue, const T epsilon = T(1.0e-9))
                 {
-                        return (std::fabs(static_cast<double> ( expectedValue - actualValue )) <= epsilon) ? true : TestCase::add_error_message(fileName, lineNo, expectedValue, actualValue, epsilon, false);
+                        return (std::fabs(static_cast<double> ( expectedValue - actualValue )) <= epsilon) ? true : TestCase::add_error_message_epsilon(fileName, lineNo, expectedValue, actualValue, epsilon);
                 }
 
         private:
                 template < typename T >
-                static bool add_error_message (const std::string& fileName, const int lineNo, const T expectedValue, const T actualValue, const T epsilon = T(), const bool isExact = true)
+                static bool add_error_message_not (const std::string& fileName, const int lineNo, const T expectedValue, const T actualValue, const T epsilon = T(), const bool isExact = true)
                 {
                         std::stringstream ss;
-                        ss << fileName << ":" << lineNo << ": error. expected value = <" << expectedValue << ">" << ", actual value = <" << actualValue << ">";
+                        ss << fileName << ":" << lineNo << ": error. value = <" << actualValue << ">";
 
                         if ( !isExact ) {
                                 ss << ", epsilon=<" << epsilon << ">";
                         }
 
+                        TestCase::get_messages().push_back(ss.str());
+                        return false;
+                }
+                template < typename T >
+                static bool add_error_message (const std::string& fileName, const int lineNo, const T expectedValue, const T actualValue)
+                {
+                        std::stringstream ss;
+                        ss << fileName << ":" << lineNo << ": error. expected value = <" << expectedValue << ">" << ", actual value = <" << actualValue << ">";
+                        TestCase::get_messages().push_back(ss.str());
+                        return false;
+                }
+
+                template < typename T >
+                static bool add_error_message_epsilon (const std::string& fileName, const int lineNo, const T expectedValue, const T actualValue, const T epsilon = T())
+                {
+                        std::stringstream ss;
+                        ss << fileName << ":" << lineNo << ": error. expected value = <" << expectedValue << ">" << ", actual value = <" << actualValue << ">, epsilon=<" << epsilon << ">";
                         TestCase::get_messages().push_back(ss.str());
                         return false;
                 }
@@ -119,8 +143,8 @@ namespace mi4
                         return message;
                 }
         private:
-                std::string _testName;
-                std::list< void (*) (void) > _tests;
+                std::string testName_;
+                std::list< void (*) (void) > tests_;
         };
 
         /**
@@ -154,7 +178,7 @@ namespace mi4
                  */
                 void add ( TestCase* testcase )
                 {
-                        this->_testcases.push_back ( testcase );
+                        this->testCases_.push_back(testcase);
                 }
 
                 /**
@@ -162,7 +186,7 @@ namespace mi4
                  */
                 int run ( const std::string& testname )
                 {
-                        for ( auto&& iter : this->_testcases ) {
+                        for ( auto&& iter : this->testCases_ ) {
                                 std::cerr << iter->getTestName() << ": ";
                                 iter->run();
                         }
@@ -182,17 +206,16 @@ namespace mi4
                                         TestCase::print(fout);
                                         std::cerr << "Errors are found. see " << fileName << "." << std::endl;
                                 }
-
                                 return EXIT_FAILURE;
                         }
                 }
         private:
-                std::list< TestCase * > _testcases;  ///< A set of test cases.
+                std::list< TestCase * > testCases_;  ///< A set of test cases.
         };
 
-        void AddTestCase ( TestCase* testcase )
+        void AddTestCase (TestCase *testCase)
         {
-                mi4::TestSuite::getInstance().add ( testcase );
+                mi4::TestSuite::getInstance().add(testCase);
                 return;
         }
 }

@@ -12,7 +12,6 @@
 #include <vector>
 #include <memory>
 
-
 namespace mi4
 {
         namespace parser
@@ -21,6 +20,11 @@ namespace mi4
                 template < typename T >
                 inline T parse ( const std::string& str );
 
+                template <>
+                inline char parse (const std::string& str)
+                {
+                        return static_cast<char> ( std::stoi(str));
+                }
                 template <>
                 inline int8_t parse ( const std::string& str )
                 {
@@ -104,12 +108,12 @@ namespace mi4
 
                 int size ( void ) const
                 {
-                        return static_cast<int> ( this->_argv.size() );
+                        return static_cast<int> ( this->argv_.size());
                 }
 
                 Argument& add ( const std::string& str )
                 {
-                        this->_argv.push_back ( str );
+                        this->argv_.push_back(str);
                         return *this;
                 }
 
@@ -127,7 +131,7 @@ namespace mi4
                 template < typename T >
                 T get ( const size_t idx ) const
                 {
-                        return parser::parse< T >(this->_argv.at(idx));
+                        return parser::parse< T >(this->argv_.at(idx));
                 }
         private:
                 int find ( const std::string& key, const size_t offset = 0 ) const
@@ -141,23 +145,23 @@ namespace mi4
                         return -1; // any arguments are not matched.
                 }
         private:
-                std::deque< std::string > _argv;
-        };//Argument
+                std::deque< std::string > argv_;
+        };
 
         class Attribute
         {
         protected:
                 enum ErrorCode : int8_t {
-                        ATTRIBUTE_ERROR_OK = 0, ATTRIBUTE_ERROR_KEY_NOT_FOUND = -1, ATTRIBUTE_ERROR_VALUE_OUT_OF_RANGE = -2, ATTRIBUTE_ERROR_INVALID = -100
+                        ATTRIBUTE_ERROR_OK = 0, ATTRIBUTE_ERROR_KEY_NOT_FOUND = -1, ATTRIBUTE_ERROR_VALUE_OUT_OF_RANGE = -2
                 };
         private:
-                const std::string _key;
+                const std::string key_;
                 std::string _message;
                 bool _isMandatory;
                 bool _isHidden;
                 Attribute::ErrorCode _errorCode;
         protected:
-                explicit Attribute (const std::string& key = std::string("")) : _key(key), _message(std::string()), _isMandatory(false), _isHidden(false), _errorCode(ATTRIBUTE_ERROR_OK) {}
+                explicit Attribute (const std::string& key = std::string("")) : key_(key), _message(std::string()), _isMandatory(false), _isHidden(false), _errorCode(ATTRIBUTE_ERROR_OK) {}
         public:
                 virtual ~Attribute ( void ) = default;
 
@@ -195,7 +199,7 @@ namespace mi4
                                 std::cerr << "key  " << this->get_key() << " is out-of-range." << std::endl;
                                 break;
 
-                        default : //  ATTRIBUTE_ERROR_INVALID
+                                default : // never called.
                                 std::cerr << "unknown error found." << std::endl;
                                 break;
                         }
@@ -206,7 +210,7 @@ namespace mi4
                 virtual void print_usage ( void )
                 {
                         if ( !this->is_hidden()) {
-                                std::cerr << "\t" << this->_key << ":\t" << this->_message << std::endl;
+                                std::cerr << "\t" << this->key_ << ":\t" << this->_message << std::endl;
                         }
 
                         return;
@@ -220,11 +224,10 @@ namespace mi4
 
                         return;
                 }
-                virtual std::string toString ( void ) const
+                virtual std::string toString (void) const
                 {
                         return std::string();
                 }
-
         protected:
                 bool is_mandatory ( void ) const
                 {
@@ -238,7 +241,7 @@ namespace mi4
 
                 std::string get_key ( void ) const
                 {
-                        return this->_key;
+                        return this->key_;
                 }
 
                 Attribute::ErrorCode get_error_code ( void ) const
@@ -257,18 +260,12 @@ namespace mi4
         private:
                 T& _value;
                 int _offset;
-
                 T _minValue; ///< Minimum value.
                 T _maxValue; ///< Maximum value.
                 T _defaultValue;  ///< Default value.
-
-
                 bool _isMinSet; ///< Minimum value is set.
                 bool _isMaxSet; ///< Maximum value is set.
                 bool _isOutRangeRejected; ///< Out rangevalue is rejected.
-
-
-
         public:
                 NumericAttribute (const std::string& key, T& value, const int offset = 1) : Attribute(key), _value(value), _offset(offset), _minValue(T()), _maxValue(T()), _defaultValue(T()), _isMinSet(false), _isMaxSet(false), _isOutRangeRejected(false)
                 {
@@ -279,12 +276,9 @@ namespace mi4
 
                 bool parse ( const Argument& arg ) const
                 {
-                        const auto& offset = this->_offset;
-                        const auto key = this->get_key();
                         T& value = this->_value;
-
-                        if ( arg.exist ( key, offset ) ) {
-                                value = arg.get< T >(key, offset);
+                        if ( arg.exist(this->get_key(), this->_offset)) {
+                                value = arg.get< T >(this->get_key(), this->_offset);
                                 return const_cast<NumericAttribute< T > *> ( this )->clamp_value(value);
                         } else {
                                 if ( this->is_mandatory() ) {
@@ -369,12 +363,8 @@ namespace mi4
                 void swap_min_max ( T& minValue, T& maxValue )
                 {
                         if ( maxValue < minValue ) {
-                                const T tmp = minValue;
-                                minValue = maxValue;
-                                maxValue = tmp;
+                                std::swap(minValue, maxValue);
                         }
-
-                        return;
                 }
 
                 bool clamp ( T& value )
@@ -383,7 +373,6 @@ namespace mi4
                                 if ( this->_isOutRangeRejected ) {
                                         return false;
                                 }
-
                                 value = this->_minValue;
                         }
 
@@ -470,10 +459,7 @@ namespace mi4
                 {
                         return;
                 }
-                ~BooleanAttribute ( void )
-                {
-                        return;
-                }
+                ~BooleanAttribute (void) = default;
 
                 bool parse ( const Argument& arg ) const
                 {
@@ -554,11 +540,7 @@ namespace mi4
 
                 std::string toString ( void ) const
                 {
-                        std::string str;
-                        str.append ( this->_attr0->toString() );
-                        str.append ( " " );
-                        str.append ( this->_attr1->toString() );
-                        return str;
+                        return this->_attr0->toString() + " " + this->_attr1->toString();
                 }
         private:
                 std::unique_ptr< NumericAttribute< T > > _attr0;
@@ -872,7 +854,7 @@ namespace mi4
                 ProgramTemplate ( ProgramTemplate&& ) = delete;
                 void operator = ( ProgramTemplate&& ) = delete;
         public:
-                explicit ProgramTemplate ( const std::string& cmdStr = "a.out" ) : _cmdStr ( cmdStr ), _attr ( new AttributeSet() ), _isDebugModeOn ( false )
+                explicit ProgramTemplate (const std::string& cmdStr = "a.out") : cmdStr_(cmdStr), attr_(new AttributeSet()), isDebugModeOn_(false)
                 {
                         return;
                 }
@@ -885,23 +867,23 @@ namespace mi4
 
                 AttributeSet& getAttributeSet ( void )
                 {
-                        return * ( this->_attr );
+                        return *(this->attr_);
                 }
 
                 bool isDebugMode ( void ) const
                 {
-                        return this->_isDebugModeOn;
+                        return this->isDebugModeOn_;
                 }
 
         private:
                 void set_debug_mode_on ( void )
                 {
-                        this->_isDebugModeOn = true;
+                        this->isDebugModeOn_ = true;
                 }
 
                 void usage ( void )
                 {
-                        this->getAttributeSet().printUsage ( this->_cmdStr );
+                        this->getAttributeSet().printUsage(this->cmdStr_);
                 }
         public:
                 static int execute ( ProgramTemplate& cmd, Argument& arg )
@@ -931,9 +913,9 @@ namespace mi4
                         }
                 }
         private:
-                std::string _cmdStr;
-                std::unique_ptr< AttributeSet > _attr;
-                bool _isDebugModeOn;
+                std::string cmdStr_;
+                std::unique_ptr< AttributeSet > attr_;
+                bool isDebugModeOn_;
         };//class ProgramTemplate
 }//namespace mi
 #endif // MI4_PROGRAM_TEMPLATE_HPP

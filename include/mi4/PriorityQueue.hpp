@@ -15,8 +15,7 @@ namespace mi4
         class PriorityQueue
         {
         private:
-                typedef std::tuple< float, T > queue_t;
-
+                using queue_t = std::tuple< float, T >;
                 class greater
                 {
                 public:
